@@ -11,12 +11,15 @@ import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import thaumcraft.api.wands.IWandable;
 
-public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITileEntityProvider {
+public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITileEntityProvider, IWandable {
 
     public static final String ID = "pressurized_pipe";
     public static final byte IS_CONNECTOR = 0b1000;
@@ -42,6 +45,19 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
 
     public static boolean isConnector(int metadata) {
         return (metadata & IS_CONNECTOR) == IS_CONNECTOR;
+    }
+
+    public static int metadataForNextColor(int metadata) {
+        final var isConnector = isConnector(metadata);
+        final var colorId = getColorId(metadata);
+        final var newColor = colorId + 1 >= TOTAL_COLORS ? 0 : colorId + 1;
+        return isConnector ? newColor | IS_CONNECTOR : newColor;
+    }
+    public static int metadataForPrevColor(int metadata) {
+        final var isConnector = isConnector(metadata);
+        final var colorId = getColorId(metadata);
+        final var newColor = colorId - 1 < 0 ? TOTAL_COLORS - 1 : colorId - 1;
+        return isConnector ? newColor | IS_CONNECTOR : newColor;
     }
 
     public final IIcon[] icons = new IIcon[7];
@@ -101,5 +117,31 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
         return this.createTileEntity(worldIn, meta);
+    }
+
+    ///
+    /// IWandable
+    ///
+
+    public int onWandRightClick(World world, ItemStack wandStack, EntityPlayer player, int x, int y, int z, int side, int metadata) {
+
+        final var newMetadata = player.isSneaking()
+            ? metadataForPrevColor(metadata)
+            : metadataForNextColor(metadata);
+
+        world.setBlockMetadataWithNotify(x, y, z, newMetadata, 1 | 2);
+        return 1;
+    }
+
+    public ItemStack onWandRightClick(World var1, ItemStack var2, EntityPlayer var3) {
+        return null;
+    }
+
+    public void onUsingWandTick(ItemStack var1, EntityPlayer var2, int var3) {
+
+    }
+
+    public void onWandStoppedUsing(ItemStack var1, World var2, EntityPlayer var3, int var4) {
+
     }
 }
