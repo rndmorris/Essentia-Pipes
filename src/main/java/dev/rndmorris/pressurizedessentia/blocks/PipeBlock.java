@@ -11,6 +11,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -18,14 +19,16 @@ import cpw.mods.fml.relauncher.SideOnly;
 import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeColor;
+import dev.rndmorris.pressurizedessentia.api.PipeHelper;
 import dev.rndmorris.pressurizedessentia.items.PipeItemBlock;
 import dev.rndmorris.pressurizedessentia.tile.PipeConnectorTileEntity;
+import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.api.wands.IWandable;
 
 public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
 
     public static final String ID = "pipe";
-    public static final byte IS_CONNECTOR = 0b1000;
+    public static final byte IS_IO_SEGMENT = 0b1000;
     public static PipeBlock pipe;
 
     public static void preInit() {
@@ -38,11 +41,11 @@ public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvide
     }
 
     public static PipeColor pipeColorFromMetadata(int metadata) {
-        return PipeColor.fromId((metadata & ~(IS_CONNECTOR)));
+        return PipeColor.fromId((metadata & ~(IS_IO_SEGMENT)));
     }
 
-    public static boolean isConnector(int metadata) {
-        return (metadata & IS_CONNECTOR) == IS_CONNECTOR;
+    public static boolean isIOSegment(int metadata) {
+        return (metadata & IS_IO_SEGMENT) == IS_IO_SEGMENT;
     }
 
     public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
@@ -61,7 +64,7 @@ public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvide
 
     @Override
     public TileEntity createTileEntity(World world, int metadata) {
-        return isConnector(metadata) ? new PipeConnectorTileEntity() : null;
+        return isIOSegment(metadata) ? new PipeConnectorTileEntity() : null;
     }
 
     @Override
@@ -94,6 +97,51 @@ public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvide
         return false;
     }
 
+    @Override
+    public void onBlockAdded(World world, int x, int y, int z) {
+        checkIfShouldBeIO(world, x, y, z);
+        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+    }
+
+    @Override
+    public void onNeighborBlockChange(World world, int x, int y, int z, Block neighbor) {
+        checkIfShouldBeIO(world, x, y, z);
+        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+    }
+
+    @Override
+    public void breakBlock(World world, int x, int y, int z, Block blockBroken, int meta) {
+        super.breakBlock(world, x, y, z, blockBroken, meta);
+        checkIfShouldBeIO(world, x, y, z);
+        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+    }
+
+    private static void checkIfShouldBeIO(World world, int x, int y, int z) {
+        final var metadata = world.getBlockMetadata(x, y, z);
+        final var isIOSegment = isIOSegment(metadata);
+        final var shouldBeIO = shouldBeIOSegment(world, x, y, z);
+        final var pipeColor = pipeColorFromMetadata(metadata);
+
+        if (!isIOSegment && shouldBeIO) {
+            world.setBlockMetadataWithNotify(x, y, z, pipeColor.id | IS_IO_SEGMENT, 2);
+            return;
+        }
+        if (isIOSegment && !shouldBeIO) {
+            world.setBlockMetadataWithNotify(x, y, z, pipeColor.id, 2);
+        }
+    }
+
+    private static boolean shouldBeIOSegment(World world, int x, int y, int z) {
+        for (var dir : ForgeDirection.VALID_DIRECTIONS) {
+            final int dX = x + dir.offsetX, dY = y + dir.offsetY, dZ = z + dir.offsetZ;
+            final var tileEntity = world.getTileEntity(dX, dY, dZ);
+            if (tileEntity instanceof IEssentiaTransport && !(tileEntity instanceof IPipeSegment)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     ///
     /// IPressurizedPipe
     ///
@@ -119,12 +167,12 @@ public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvide
     public int onWandRightClick(World world, ItemStack wandStack, EntityPlayer player, int x, int y, int z, int side,
         int metadata) {
         final var color = pipeColorFromMetadata(metadata);
-        final var connectorBit = isConnector(metadata) ? IS_CONNECTOR : 0;
+        final var connectorBit = isIOSegment(metadata) ? IS_IO_SEGMENT : 0;
 
         final var newColor = player.isSneaking() ? color.prevColor() : color.nextColor();
 
         world.setBlockMetadataWithNotify(x, y, z, newColor.id | connectorBit, 1 | 2);
-        world.markBlockForUpdate(x, y, z);
+        PipeHelper.rebuildPipeNetwork(world, x, y, z);
         return 0;
     }
 

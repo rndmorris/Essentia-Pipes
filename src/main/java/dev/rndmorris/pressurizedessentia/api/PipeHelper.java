@@ -2,6 +2,7 @@ package dev.rndmorris.pressurizedessentia.api;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -31,7 +32,7 @@ public class PipeHelper {
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final int nX = x + dir.offsetX, nY = y + dir.offsetY, nZ = z + dir.offsetZ;
             final var neighborColor = getPipeColor(world, nX, nY, nZ);
-            if (thisColor.connectsTo(neighborColor)) {
+            if (neighborColor != null && thisColor.willConnectTo(neighborColor)) {
                 result.add(new Vec(nX, nY, nZ));
             }
         }
@@ -52,32 +53,35 @@ public class PipeHelper {
         return pipe == null ? null : pipe.getPipeColor(world, x, y, z);
     }
 
-    public static IPipeConnector getPipeConnector(World world, int x, int y, int z) {
+    public static IIOPipeSegment getIOSegment(World world, int x, int y, int z) {
         final var block = world.getBlock(x, y, z);
-        if (block instanceof IPipeConnector blockConnector) {
-            return blockConnector;
+        if (block instanceof IIOPipeSegment ioSegment) {
+            return ioSegment;
         }
         final var tileEntity = world.getTileEntity(x, y, z);
-        return tileEntity instanceof IPipeConnector tileConnector ? tileConnector : null;
+        return tileEntity instanceof IIOPipeSegment tileIOSegment ? tileIOSegment : null;
     }
 
-    public static List<ConnectorResult> getConnectorsInGraph(World world, int x, int y, int z) {
-        final var queue = new ArrayDeque<Vec>();
+    public static List<IoSegmentResult> findAllIOSegments(World world, int x, int y, int z) {
+        return findAllIOSegments(world, Collections.singletonList(new Vec(x, y, z)), 0);
+    }
+
+    public static List<IoSegmentResult> findAllIOSegments(World world, Collection<Vec> seedCoordinates,
+        int startDistance) {
+        final var queue = new ArrayDeque<>(seedCoordinates);
         final var visited = new HashSet<Vec>();
 
-        final var results = new ArrayList<ConnectorResult>();
+        final var results = new ArrayList<IoSegmentResult>();
 
-        var depth = 0;
-
-        queue.add(new Vec(x, y, z));
+        var distance = startDistance;
 
         while (!queue.isEmpty()) {
             final var popped = queue.pop();
             final int pX = popped.x(), pY = popped.y(), pZ = popped.z();
 
-            final var connector = getPipeConnector(world, pX, pY, pZ);
+            final var connector = getIOSegment(world, pX, pY, pZ);
             if (connector != null) {
-                results.add(new ConnectorResult(popped.x(), popped.y(), popped.z(), depth));
+                results.add(new IoSegmentResult(popped.x(), popped.y(), popped.z(), distance));
             }
 
             visited.add(popped);
@@ -87,12 +91,45 @@ public class PipeHelper {
                     queue.push(adjacent);
                 }
             }
-            depth += 1;
+            distance += 1;
         }
 
         return results;
     }
 
+    public static void rebuildPipeNetwork(World world, int x, int y, int z) {
+        final var seedCoordinates = new ArrayList<Vec>();
+
+        final var originSegment = getPipeSegment(world, x, y, z);
+        final var startDistance = originSegment != null ? 0 : 1;
+        if (originSegment == null) {
+            for (var dir : ForgeDirection.VALID_DIRECTIONS) {
+                final int dX = x + dir.offsetX, dY = y + dir.offsetY, dZ = z + dir.offsetZ;
+                final var adjacentSegment = getPipeSegment(world, dX, dY, dZ);
+                if (adjacentSegment != null) {
+                    seedCoordinates.add(new Vec(dX, dY, dZ));
+                }
+            }
+        } else {
+            seedCoordinates.add(new Vec(x, y, z));
+        }
+
+        final var addresses = findAllIOSegments(world, seedCoordinates, startDistance);
+        for (var address : addresses) {
+            final var ioSegment = getIOSegment(world, address.x, address.y, address.z);
+            if (ioSegment == null) {
+                continue;
+            }
+            ioSegment.rebuildIOConnections(world, address.x, address.y, address.z);
+        }
+    }
+
     @Desugar
-    public record ConnectorResult(int x, int y, int z, int distance) {};
+    public record IoSegmentResult(int x, int y, int z, int distance) {
+
+        @Override
+        public String toString() {
+            return "ConnectorResult{" + "x=" + x + ", y=" + y + ", z=" + z + ", distance=" + distance + '}';
+        }
+    };
 }

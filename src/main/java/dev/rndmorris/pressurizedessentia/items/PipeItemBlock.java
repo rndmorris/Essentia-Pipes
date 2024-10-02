@@ -1,7 +1,5 @@
 package dev.rndmorris.pressurizedessentia.items;
 
-import dev.rndmorris.pressurizedessentia.api.PipeColor;
-import dev.rndmorris.pressurizedessentia.blocks.PipeBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
@@ -10,6 +8,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
+import dev.rndmorris.pressurizedessentia.blocks.PipeBlock;
 
 public class PipeItemBlock extends ItemBlock {
 

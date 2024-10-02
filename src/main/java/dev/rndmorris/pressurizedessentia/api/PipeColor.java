@@ -26,7 +26,7 @@ public enum PipeColor {
         return Math.max(0, Math.min(id, COLORS.length));
     }
 
-    public boolean connectsTo(PipeColor color) {
+    public boolean willConnectTo(PipeColor color) {
         return this == NONE || color == NONE || this == color;
     }
 
