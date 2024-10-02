@@ -4,6 +4,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import dev.rndmorris.pressurizedessentia.blocks.PressurizedPipeBlock;
 
 public class CommonProxy {
 
@@ -12,7 +13,7 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
 
-        PressurizedEssentia.LOG.info("I am PressurizedEssentia at version " + Tags.VERSION);
+        PressurizedPipeBlock.preInit();
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)

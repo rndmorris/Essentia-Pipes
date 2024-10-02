@@ -17,8 +17,12 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
     acceptedMinecraftVersions = "[1.7.10]")
 public class PressurizedEssentia {
 
-    public static final String MODID = "PressurizedEssentiaid";
+    public static final String MODID = "pressurizedessentia";
     public static final Logger LOG = LogManager.getLogger(MODID);
+
+    public static final String modid(String name) {
+        return MODID + ":" + name;
+    }
 
     @SidedProxy(
         clientSide = "dev.rndmorris.pressurizedessentia.ClientProxy",
