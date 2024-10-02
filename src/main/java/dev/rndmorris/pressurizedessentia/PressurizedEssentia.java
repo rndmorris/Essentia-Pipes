@@ -20,7 +20,7 @@ public class PressurizedEssentia {
     public static final String MODID = "pressurizedessentia";
     public static final Logger LOG = LogManager.getLogger(MODID);
 
-    public static final String modid(String name) {
+    public static String modid(String name) {
         return MODID + ":" + name;
     }
 

@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -29,7 +30,8 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
 
     public static void preInit() {
         pressurizedPipe = new PressurizedPipeBlock();
-        pressurizedPipe.setBlockName(PressurizedEssentia.modid(ID));
+        pressurizedPipe.setBlockName(PressurizedEssentia.modid(ID))
+            .setCreativeTab(PressurizedEssentia.proxy.getCreativeTab());
 
         GameRegistry.registerBlock(pressurizedPipe, PressurizedPipeItemBlock.class, ID);
         GameRegistry.registerTileEntity(PipeConnectorTileEntity.class, PipeConnectorTileEntity.ID);
@@ -50,6 +52,11 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
         final var pixel = 1F / 16F;
         final var inset = pixel * 5;
         setBlockBounds(inset, inset, inset, 1F - inset, 1F - inset, 1F - inset);
+    }
+
+    @Override
+    public boolean canCreatureSpawn(EnumCreatureType type, IBlockAccess world, int x, int y, int z) {
+        return false;
     }
 
     @Override
@@ -117,7 +124,8 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
         final var newColor = player.isSneaking() ? color.prevColor() : color.nextColor();
 
         world.setBlockMetadataWithNotify(x, y, z, newColor.id | connectorBit, 1 | 2);
-        return 1;
+        world.markBlockForUpdate(x, y, z);
+        return 0;
     }
 
     public ItemStack onWandRightClick(World var1, ItemStack var2, EntityPlayer var3) {
