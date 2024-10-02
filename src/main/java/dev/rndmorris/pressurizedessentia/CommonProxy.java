@@ -5,6 +5,7 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import dev.rndmorris.pressurizedessentia.blocks.PressurizedPipeBlock;
+import dev.rndmorris.pressurizedessentia.client.CreativeTab;
 
 public class CommonProxy {
 
@@ -24,4 +25,8 @@ public class CommonProxy {
 
     // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {}
+
+    public CreativeTab getCreativeTab() {
+        return null;
+    }
 }
