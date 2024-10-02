@@ -1,5 +1,7 @@
 package dev.rndmorris.pressurizedessentia.items;
 
+import dev.rndmorris.pressurizedessentia.api.PipeColor;
+import dev.rndmorris.pressurizedessentia.blocks.PipeBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
@@ -20,6 +22,12 @@ public class PipeItemBlock extends ItemBlock {
     @Override
     public int getMetadata(int metadata) {
         return metadata;
+    }
+
+    @Override
+    public String getUnlocalizedName(ItemStack stack) {
+        final var color = PipeBlock.pipeColorFromMetadata(stack.getItemDamage());
+        return super.getUnlocalizedName() + "." + color.id;
     }
 
     @Override

@@ -1,3 +1,9 @@
-tile.pressurizedessentia:pressurized_pipe.name=Pressurized Essentia Pipe
+tile.pressurizedessentia:pipe.0.name=Pressurized Pipe
+tile.pressurizedessentia:pipe.1.name=Pressurized Pipe (Aer)
+tile.pressurizedessentia:pipe.2.name=Pressurized Pipe (Ignis)
+tile.pressurizedessentia:pipe.3.name=Pressurized Pipe (Aqua)
+tile.pressurizedessentia:pipe.4.name=Pressurized Pipe (Terra)
+tile.pressurizedessentia:pipe.5.name=Pressurized Pipe (Ordo)
+tile.pressurizedessentia:pipe.6.name=Pressurized Pipe (Perditio)
 
 itemGroup.pressurizedessentia=Pressurized Essentia Pipes
