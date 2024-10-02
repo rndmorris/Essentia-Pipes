@@ -19,6 +19,9 @@ import thaumcraft.common.tiles.TileTube;
 
 public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment {
 
+    public static final String CONNECTIONS = "connections";
+    public static final int MAX_CONNECTIONS = Integer.MAX_VALUE / 4;
+
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
     public final Map<Vec, Integer> connections = new HashMap<>();
 
@@ -44,11 +47,29 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
+        if (compound.hasKey(CONNECTIONS)) {
+            connections.clear();
+            final var data = compound.getIntArray(CONNECTIONS);
+            for (var index = 0; index < data.length; index += 4) {
+                final int x = data[index], y = data[index + 1], z = data[index + 2], distance = data[index + 3];
+                connections.put(new Vec(x, y, z), distance);
+            }
+        }
     }
 
     @Override
     public void writeToNBT(NBTTagCompound compound) {
-        super.readFromNBT(compound);
+        super.writeToNBT(compound);
+        final var data = new int[connections.size() * 4];
+        var index = 0;
+        for (var entry : connections.entrySet()) {
+            data[index] = entry.getKey().x();
+            data[index + 1] = entry.getKey().y();
+            data[index + 2] = entry.getKey().z();
+            data[index + 3] = entry.getValue();
+            index += 4;
+        }
+        compound.setIntArray(CONNECTIONS, data);
     }
 
     ///
@@ -104,9 +125,10 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
 
     @Override
     public void rebuildIOConnections(World world, int x, int y, int z) {
-        final var connectors = PipeHelper.findAllIOSegments(worldObj, xCoord, yCoord, zCoord);
+        final var connectors = PipeHelper.findAllIOSegments(worldObj, xCoord, yCoord, zCoord).stream().sorted().iterator();
         this.connections.clear();
-        for (var con : connectors) {
+        while (connectors.hasNext() && connections.size() < MAX_CONNECTIONS) {
+            final var con = connectors.next();
             if (con.x() == xCoord && con.y() == yCoord && con.z() == zCoord) {
                 continue;
             }

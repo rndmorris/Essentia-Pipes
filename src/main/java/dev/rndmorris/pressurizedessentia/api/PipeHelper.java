@@ -62,16 +62,16 @@ public class PipeHelper {
         return tileEntity instanceof IIOPipeSegment tileIOSegment ? tileIOSegment : null;
     }
 
-    public static List<IoSegmentResult> findAllIOSegments(World world, int x, int y, int z) {
+    public static List<IOSegmentResult> findAllIOSegments(World world, int x, int y, int z) {
         return findAllIOSegments(world, Collections.singletonList(new Vec(x, y, z)), 0);
     }
 
-    public static List<IoSegmentResult> findAllIOSegments(World world, Collection<Vec> seedCoordinates,
-        int startDistance) {
+    public static List<IOSegmentResult> findAllIOSegments(World world, Collection<Vec> seedCoordinates,
+                                                          int startDistance) {
         final var queue = new ArrayDeque<>(seedCoordinates);
         final var visited = new HashSet<Vec>();
 
-        final var results = new ArrayList<IoSegmentResult>();
+        final var results = new ArrayList<IOSegmentResult>();
 
         var distance = startDistance;
 
@@ -81,7 +81,7 @@ public class PipeHelper {
 
             final var connector = getIOSegment(world, pX, pY, pZ);
             if (connector != null) {
-                results.add(new IoSegmentResult(popped.x(), popped.y(), popped.z(), distance));
+                results.add(new IOSegmentResult(popped.x(), popped.y(), popped.z(), distance));
             }
 
             visited.add(popped);
@@ -125,11 +125,16 @@ public class PipeHelper {
     }
 
     @Desugar
-    public record IoSegmentResult(int x, int y, int z, int distance) {
+    public record IOSegmentResult(int x, int y, int z, int distance) implements Comparable<IOSegmentResult> {
 
         @Override
         public String toString() {
             return "ConnectorResult{" + "x=" + x + ", y=" + y + ", z=" + z + ", distance=" + distance + '}';
+        }
+
+        @Override
+        public int compareTo(IOSegmentResult o) {
+            return Integer.compare(distance, o.distance);
         }
     };
 }
