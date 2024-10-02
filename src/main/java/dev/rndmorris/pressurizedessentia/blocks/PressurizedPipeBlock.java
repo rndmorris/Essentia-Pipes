@@ -1,12 +1,5 @@
 package dev.rndmorris.pressurizedessentia.blocks;
 
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
-import dev.rndmorris.pressurizedessentia.api.IPressurizedPipe;
-import dev.rndmorris.pressurizedessentia.items.PressurizedPipeItemBlock;
-import dev.rndmorris.pressurizedessentia.tile.PipeConnectorTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -17,14 +10,21 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
+import dev.rndmorris.pressurizedessentia.api.IPressurizedPipe;
+import dev.rndmorris.pressurizedessentia.api.PipeColor;
+import dev.rndmorris.pressurizedessentia.items.PressurizedPipeItemBlock;
+import dev.rndmorris.pressurizedessentia.tile.PipeConnectorTileEntity;
 import thaumcraft.api.wands.IWandable;
 
 public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITileEntityProvider, IWandable {
 
     public static final String ID = "pressurized_pipe";
     public static final byte IS_CONNECTOR = 0b1000;
-    public static final byte TOTAL_COLORS = 7;
-
     public static PressurizedPipeBlock pressurizedPipe;
 
     public static void preInit() {
@@ -35,32 +35,15 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
         GameRegistry.registerTileEntity(PipeConnectorTileEntity.class, PipeConnectorTileEntity.ID);
     }
 
-    public static int clampToColorId(int metadata) {
-        return Math.max(0, Math.min(metadata, TOTAL_COLORS));
-    }
-
-    public static int getColorId(int metadata) {
-        return clampToColorId(metadata & ~(IS_CONNECTOR));
+    public static PipeColor pipeColorFromMetadata(int metadata) {
+        return PipeColor.fromId((metadata & ~(IS_CONNECTOR)));
     }
 
     public static boolean isConnector(int metadata) {
         return (metadata & IS_CONNECTOR) == IS_CONNECTOR;
     }
 
-    public static int metadataForNextColor(int metadata) {
-        final var isConnector = isConnector(metadata);
-        final var colorId = getColorId(metadata);
-        final var newColor = colorId + 1 >= TOTAL_COLORS ? 0 : colorId + 1;
-        return isConnector ? newColor | IS_CONNECTOR : newColor;
-    }
-    public static int metadataForPrevColor(int metadata) {
-        final var isConnector = isConnector(metadata);
-        final var colorId = getColorId(metadata);
-        final var newColor = colorId - 1 < 0 ? TOTAL_COLORS - 1 : colorId - 1;
-        return isConnector ? newColor | IS_CONNECTOR : newColor;
-    }
-
-    public final IIcon[] icons = new IIcon[7];
+    public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
 
     protected PressurizedPipeBlock() {
         super(Material.iron);
@@ -76,7 +59,7 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
 
     @Override
     public IIcon getIcon(int side, int metadata) {
-        return icons[getColorId(metadata)];
+        return icons[pipeColorFromMetadata(metadata).id];
     }
 
     @Override
@@ -108,7 +91,10 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
     /// IPressurizedPipe
     ///
 
-
+    public PipeColor getPipeColor(World world, int x, int y, int z) {
+        final var metadata = world.getBlockMetadata(x, y, z);
+        return pipeColorFromMetadata(metadata);
+    }
 
     ///
     /// ITileEntityProvider
@@ -123,13 +109,14 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
     /// IWandable
     ///
 
-    public int onWandRightClick(World world, ItemStack wandStack, EntityPlayer player, int x, int y, int z, int side, int metadata) {
+    public int onWandRightClick(World world, ItemStack wandStack, EntityPlayer player, int x, int y, int z, int side,
+        int metadata) {
+        final var color = pipeColorFromMetadata(metadata);
+        final var connectorBit = isConnector(metadata) ? IS_CONNECTOR : 0;
 
-        final var newMetadata = player.isSneaking()
-            ? metadataForPrevColor(metadata)
-            : metadataForNextColor(metadata);
+        final var newColor = player.isSneaking() ? color.prevColor() : color.nextColor();
 
-        world.setBlockMetadataWithNotify(x, y, z, newMetadata, 1 | 2);
+        world.setBlockMetadataWithNotify(x, y, z, newColor.id | connectorBit, 1 | 2);
         return 1;
     }
 
