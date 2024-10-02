@@ -16,24 +16,24 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
-import dev.rndmorris.pressurizedessentia.api.IPressurizedPipe;
+import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeColor;
-import dev.rndmorris.pressurizedessentia.items.PressurizedPipeItemBlock;
+import dev.rndmorris.pressurizedessentia.items.PipeItemBlock;
 import dev.rndmorris.pressurizedessentia.tile.PipeConnectorTileEntity;
 import thaumcraft.api.wands.IWandable;
 
-public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITileEntityProvider, IWandable {
+public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
 
-    public static final String ID = "pressurized_pipe";
+    public static final String ID = "pipe";
     public static final byte IS_CONNECTOR = 0b1000;
-    public static PressurizedPipeBlock pressurizedPipe;
+    public static PipeBlock pipe;
 
     public static void preInit() {
-        pressurizedPipe = new PressurizedPipeBlock();
-        pressurizedPipe.setBlockName(PressurizedEssentia.modid(ID))
+        pipe = new PipeBlock();
+        pipe.setBlockName(PressurizedEssentia.modid(ID))
             .setCreativeTab(PressurizedEssentia.proxy.getCreativeTab());
 
-        GameRegistry.registerBlock(pressurizedPipe, PressurizedPipeItemBlock.class, ID);
+        GameRegistry.registerBlock(pipe, PipeItemBlock.class, ID);
         GameRegistry.registerTileEntity(PipeConnectorTileEntity.class, PipeConnectorTileEntity.ID);
     }
 
@@ -47,7 +47,7 @@ public class PressurizedPipeBlock extends Block implements IPressurizedPipe, ITi
 
     public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
 
-    protected PressurizedPipeBlock() {
+    protected PipeBlock() {
         super(Material.iron);
         final var pixel = 1F / 16F;
         final var inset = pixel * 5;

@@ -4,7 +4,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 
 import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
-import dev.rndmorris.pressurizedessentia.blocks.PressurizedPipeBlock;
+import dev.rndmorris.pressurizedessentia.blocks.PipeBlock;
 
 public class CreativeTab extends CreativeTabs {
 
@@ -14,6 +14,6 @@ public class CreativeTab extends CreativeTabs {
 
     @Override
     public Item getTabIconItem() {
-        return Item.getItemFromBlock(PressurizedPipeBlock.pressurizedPipe);
+        return Item.getItemFromBlock(PipeBlock.pipe);
     }
 }
