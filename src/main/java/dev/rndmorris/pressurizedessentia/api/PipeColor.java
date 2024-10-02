@@ -8,7 +8,8 @@ public enum PipeColor {
     BLUE((byte) 3),
     GREEN((byte) 4),
     WHITE((byte) 5),
-    BLACK((byte) 6);
+    BLACK((byte) 6),
+    PURPLE((byte) 7);
 
     public final byte id;
 
@@ -16,7 +17,7 @@ public enum PipeColor {
         this.id = id;
     }
 
-    public static final PipeColor[] COLORS = { NONE, YELLOW, RED, BLUE, GREEN, WHITE, BLACK };
+    public static final PipeColor[] COLORS = { NONE, YELLOW, RED, BLUE, GREEN, WHITE, BLACK, PURPLE };
 
     public static PipeColor fromId(int id) {
         return COLORS[clampId(id)];
@@ -31,10 +32,10 @@ public enum PipeColor {
     }
 
     public PipeColor nextColor() {
-        return id + 1 > BLACK.id ? NONE : COLORS[id + 1];
+        return id + 1 >= COLORS.length ? COLORS[0] : COLORS[id + 1];
     }
 
     public PipeColor prevColor() {
-        return id - 1 < NONE.id ? BLACK : COLORS[id - 1];
+        return id - 1 < 0 ? COLORS[COLORS.length - 1] : COLORS[id - 1];
     }
 }

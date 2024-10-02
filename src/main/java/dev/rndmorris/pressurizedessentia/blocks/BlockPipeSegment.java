@@ -20,24 +20,24 @@ import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeColor;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
-import dev.rndmorris.pressurizedessentia.items.PipeItemBlock;
-import dev.rndmorris.pressurizedessentia.tile.PipeConnectorTileEntity;
+import dev.rndmorris.pressurizedessentia.items.ItemBlockPipeSegment;
+import dev.rndmorris.pressurizedessentia.tile.TileEntityIOPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.api.wands.IWandable;
 
-public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
+public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
 
-    public static final String ID = "pipe";
+    public static final String ID = "pipe_segment";
     public static final byte IS_IO_SEGMENT = 0b1000;
-    public static PipeBlock pipe;
+    public static BlockPipeSegment pipe_segment;
 
     public static void preInit() {
-        pipe = new PipeBlock();
-        pipe.setBlockName(PressurizedEssentia.modid(ID))
+        pipe_segment = new BlockPipeSegment();
+        pipe_segment.setBlockName(PressurizedEssentia.modid(ID))
             .setCreativeTab(PressurizedEssentia.proxy.getCreativeTab());
 
-        GameRegistry.registerBlock(pipe, PipeItemBlock.class, ID);
-        GameRegistry.registerTileEntity(PipeConnectorTileEntity.class, PipeConnectorTileEntity.ID);
+        GameRegistry.registerBlock(pipe_segment, ItemBlockPipeSegment.class, ID);
+        GameRegistry.registerTileEntity(TileEntityIOPipeSegment.class, TileEntityIOPipeSegment.ID);
     }
 
     public static PipeColor pipeColorFromMetadata(int metadata) {
@@ -48,75 +48,13 @@ public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvide
         return (metadata & IS_IO_SEGMENT) == IS_IO_SEGMENT;
     }
 
-    public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
+    public static void checkIfShouldBeIO(World world, int x, int y, int z) {
+        final var segment = world.getBlock(x, y, z);
 
-    protected PipeBlock() {
-        super(Material.iron);
-        final var pixel = 1F / 16F;
-        final var inset = pixel * 5;
-        setBlockBounds(inset, inset, inset, 1F - inset, 1F - inset, 1F - inset);
-    }
-
-    @Override
-    public boolean canCreatureSpawn(EnumCreatureType type, IBlockAccess world, int x, int y, int z) {
-        return false;
-    }
-
-    @Override
-    public TileEntity createTileEntity(World world, int metadata) {
-        return isIOSegment(metadata) ? new PipeConnectorTileEntity() : null;
-    }
-
-    @Override
-    public IIcon getIcon(int side, int metadata) {
-        return icons[pipeColorFromMetadata(metadata).id];
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public IIcon getIcon(IBlockAccess worldIn, int x, int y, int z, int side) {
-        final var metadata = worldIn.getBlockMetadata(x, y, z);
-        return getIcon(side, metadata);
-    }
-
-    @Override
-    public boolean isOpaqueCube() {
-        return false;
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void registerBlockIcons(IIconRegister reg) {
-        for (var index = 0; index < icons.length; ++index) {
-            icons[index] = reg.registerIcon(PressurizedEssentia.modid(ID + "_" + index));
+        if (segment != pipe_segment) {
+            return;
         }
-    }
 
-    @Override
-    public boolean renderAsNormalBlock() {
-        return false;
-    }
-
-    @Override
-    public void onBlockAdded(World world, int x, int y, int z) {
-        checkIfShouldBeIO(world, x, y, z);
-        PipeHelper.rebuildPipeNetwork(world, x, y, z);
-    }
-
-    @Override
-    public void onNeighborBlockChange(World world, int x, int y, int z, Block neighbor) {
-        checkIfShouldBeIO(world, x, y, z);
-        PipeHelper.rebuildPipeNetwork(world, x, y, z);
-    }
-
-    @Override
-    public void breakBlock(World world, int x, int y, int z, Block blockBroken, int meta) {
-        super.breakBlock(world, x, y, z, blockBroken, meta);
-        checkIfShouldBeIO(world, x, y, z);
-        PipeHelper.rebuildPipeNetwork(world, x, y, z);
-    }
-
-    private static void checkIfShouldBeIO(World world, int x, int y, int z) {
         final var metadata = world.getBlockMetadata(x, y, z);
         final var isIOSegment = isIOSegment(metadata);
         final var shouldBeIO = shouldBeIOSegment(world, x, y, z);
@@ -135,11 +73,67 @@ public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvide
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final int dX = x + dir.offsetX, dY = y + dir.offsetY, dZ = z + dir.offsetZ;
             final var tileEntity = world.getTileEntity(dX, dY, dZ);
-            if (tileEntity instanceof IEssentiaTransport && !(tileEntity instanceof IPipeSegment)) {
+            if (tileEntity instanceof IEssentiaTransport transport && !(tileEntity instanceof IPipeSegment)
+                && transport.isConnectable(dir.getOpposite())) {
                 return true;
             }
         }
         return false;
+    }
+
+    public final IIcon[] icons = new IIcon[PipeColor.COLORS.length * 2];
+
+    protected BlockPipeSegment() {
+        super(Material.iron);
+        final var pixel = 1F / 16F;
+        final var inset = pixel * 6;
+        setBlockBounds(inset, inset, inset, 1F - inset, 1F - inset, 1F - inset);
+    }
+
+    @Override
+    public void breakBlock(World world, int x, int y, int z, Block blockBroken, int meta) {
+        super.breakBlock(world, x, y, z, blockBroken, meta);
+        checkIfShouldBeIO(world, x, y, z);
+        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+    }
+
+    @Override
+    public boolean canCreatureSpawn(EnumCreatureType type, IBlockAccess world, int x, int y, int z) {
+        return false;
+    }
+
+    @Override
+    public TileEntity createTileEntity(World world, int metadata) {
+        return isIOSegment(metadata) ? new TileEntityIOPipeSegment() : null;
+    }
+
+    @Override
+    public IIcon getIcon(int side, int metadata) {
+        return icons[metadata];
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public IIcon getIcon(IBlockAccess worldIn, int x, int y, int z, int side) {
+        final var metadata = worldIn.getBlockMetadata(x, y, z);
+        return getIcon(side, metadata);
+    }
+
+    @Override
+    public boolean isOpaqueCube() {
+        return false;
+    }
+
+    @Override
+    public void onBlockAdded(World world, int x, int y, int z) {
+        checkIfShouldBeIO(world, x, y, z);
+        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+    }
+
+    @Override
+    public void onNeighborBlockChange(World world, int x, int y, int z, Block neighbor) {
+        checkIfShouldBeIO(world, x, y, z);
+        PipeHelper.rebuildPipeNetwork(world, x, y, z);
     }
 
     ///
@@ -149,6 +143,20 @@ public class PipeBlock extends Block implements IPipeSegment, ITileEntityProvide
     public PipeColor getPipeColor(World world, int x, int y, int z) {
         final var metadata = world.getBlockMetadata(x, y, z);
         return pipeColorFromMetadata(metadata);
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerBlockIcons(IIconRegister reg) {
+        for (var index = 0; index < icons.length; ++index) {
+            final var path = String.format("%s:%s_%02d", PressurizedEssentia.MODID, ID, index);
+            icons[index] = reg.registerIcon(path);
+        }
+    }
+
+    @Override
+    public boolean renderAsNormalBlock() {
+        return false;
     }
 
     ///

@@ -8,11 +8,11 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
-import dev.rndmorris.pressurizedessentia.blocks.PipeBlock;
+import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
 
-public class PipeItemBlock extends ItemBlock {
+public class ItemBlockPipeSegment extends ItemBlock {
 
-    public PipeItemBlock(Block p_i45328_1_) {
+    public ItemBlockPipeSegment(Block p_i45328_1_) {
         super(p_i45328_1_);
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
@@ -25,7 +25,7 @@ public class PipeItemBlock extends ItemBlock {
 
     @Override
     public String getUnlocalizedName(ItemStack stack) {
-        final var color = PipeBlock.pipeColorFromMetadata(stack.getItemDamage());
+        final var color = BlockPipeSegment.pipeColorFromMetadata(stack.getItemDamage());
         return super.getUnlocalizedName() + "." + color.id;
     }
 
