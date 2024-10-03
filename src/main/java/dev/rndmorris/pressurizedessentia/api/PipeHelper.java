@@ -2,17 +2,18 @@ package dev.rndmorris.pressurizedessentia.api;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.github.bsideup.jabel.Desugar;
-
-import dev.rndmorris.pressurizedessentia.Vec;
 
 public class PipeHelper {
 
@@ -22,18 +23,18 @@ public class PipeHelper {
      * @param world The world to check.
      * @return A list of connected segments (empty if none), or null if the block at x, y, z was not a pipe.
      */
-    public static List<Vec> connectedSegments(World world, int x, int y, int z) {
+    public static List<Position> connectedSegments(World world, int x, int y, int z) {
         final var pipe = getPipeSegment(world, x, y, z);
         if (pipe == null) {
             return Collections.emptyList();
         }
-        final var result = new ArrayList<Vec>();
+        final var result = new ArrayList<Position>();
         final var thisColor = pipe.getPipeColor(world, x, y, z);
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final int nX = x + dir.offsetX, nY = y + dir.offsetY, nZ = z + dir.offsetZ;
             final var neighborColor = getPipeColor(world, nX, nY, nZ);
             if (neighborColor != null && thisColor.willConnectTo(neighborColor)) {
-                result.add(new Vec(nX, nY, nZ));
+                result.add(new Position(nX, nY, nZ));
             }
         }
         return result;
@@ -62,66 +63,82 @@ public class PipeHelper {
         return tileEntity instanceof IIOPipeSegment tileIOSegment ? tileIOSegment : null;
     }
 
-    public static List<IOSegmentResult> findAllIOSegments(World world, int x, int y, int z) {
-        return findAllIOSegments(world, Collections.singletonList(new Vec(x, y, z)), 0);
+    /**
+     * Notify the pipe network that a segment has been added or changed.
+     *
+     * @param world The world of the segment that was added or changed.
+     * @param x     The x of the segment that was added or changed.
+     * @param y     The y of the segment that was added or changed.
+     * @param z     The z of the segment that was added or changed.
+     */
+    public static void notifySegmentAddedOrChanged(World world, int x, int y, int z) {
+        final var toUpdate = findIOSegmentsInNetwork(world, SearchType.DepthFirst, new Position(x, y, z));
+        updateIOSegments(world, toUpdate);
     }
 
-    public static List<IOSegmentResult> findAllIOSegments(World world, Collection<Vec> seedCoordinates,
-                                                          int startDistance) {
-        final var queue = new ArrayDeque<>(seedCoordinates);
-        final var visited = new HashSet<Vec>();
-
-        final var results = new ArrayList<IOSegmentResult>();
-
-        var distance = startDistance;
-
-        while (!queue.isEmpty()) {
-            final var popped = queue.pop();
-            final int pX = popped.x(), pY = popped.y(), pZ = popped.z();
-
-            final var connector = getIOSegment(world, pX, pY, pZ);
-            if (connector != null) {
-                results.add(new IOSegmentResult(popped.x(), popped.y(), popped.z(), distance));
-            }
-
-            visited.add(popped);
-
-            for (var adjacent : connectedSegments(world, pX, pY, pZ)) {
-                if (!visited.contains(adjacent)) {
-                    queue.push(adjacent);
-                }
-            }
-            distance += 1;
-        }
-
-        return results;
+    /**
+     * Notify the pipe network that a segment has been removed.
+     *
+     * @param world The world of the segment that was removed.
+     * @param x     The x of the segment that was removed.
+     * @param y     The y of the segment that was removed.
+     * @param z     The z of the segment that was removed.
+     */
+    public static void notifySegmentRemoved(World world, int x, int y, int z) {
+        final var toUpdate = findIOSegmentsInNetwork(world, SearchType.DepthFirst, Position.adjacent(x, y, z));
+        updateIOSegments(world, toUpdate);
     }
 
-    public static void rebuildPipeNetwork(World world, int x, int y, int z) {
-        final var seedCoordinates = new ArrayList<Vec>();
-
-        final var originSegment = getPipeSegment(world, x, y, z);
-        final var startDistance = originSegment != null ? 0 : 1;
-        if (originSegment == null) {
-            for (var dir : ForgeDirection.VALID_DIRECTIONS) {
-                final int dX = x + dir.offsetX, dY = y + dir.offsetY, dZ = z + dir.offsetZ;
-                final var adjacentSegment = getPipeSegment(world, dX, dY, dZ);
-                if (adjacentSegment != null) {
-                    seedCoordinates.add(new Vec(dX, dY, dZ));
-                }
-            }
-        } else {
-            seedCoordinates.add(new Vec(x, y, z));
-        }
-
-        final var addresses = findAllIOSegments(world, seedCoordinates, startDistance);
-        for (var address : addresses) {
-            final var ioSegment = getIOSegment(world, address.x, address.y, address.z);
+    private static void updateIOSegments(World world, Collection<IOSegmentResult> toUpdate) {
+        for (var result : toUpdate) {
+            final var ioSegment = getIOSegment(world, result.x, result.y, result.z);
             if (ioSegment == null) {
                 continue;
             }
-            ioSegment.rebuildIOConnections(world, address.x, address.y, address.z);
+            ioSegment.rebuildIOConnections(world, result.x, result.y, result.z);
         }
+    }
+
+    public static List<IOSegmentResult> findIOSegmentsInNetwork(World world, SearchType searchType,
+        Position... initialPositions) {
+        final var result = new ArrayList<IOSegmentResult>();
+
+        final var queue = Arrays.stream(initialPositions)
+            .map(p -> new IOSegmentResult(p.x(), p.y(), p.z(), 0))
+            .collect(Collectors.toCollection(ArrayDeque::new));
+        final var visited = new HashSet<Position>();
+
+        final var results = new HashMap<Position, Integer>();
+
+        while (!queue.isEmpty()) {
+            final var at = switch (searchType) {
+                case BreadthFirst -> queue.pollFirst();
+                case DepthFirst -> queue.pollLast();
+            };
+
+            final int x = at.x(), y = at.y(), z = at.z(), distance = at.distance();
+            final var pos = new Position(x, y, z);
+            visited.add(pos);
+
+            final var ioSegment = getIOSegment(world, x, y, z);
+            if (ioSegment != null && (!results.containsKey(pos) || results.get(pos) > distance)) {
+                results.put(pos, distance);
+            }
+
+            for (var adj : connectedSegments(world, x, y, z)) {
+                if (!visited.contains(adj)) {
+                    queue.push(new IOSegmentResult(adj.x(), adj.y(), adj.z(), distance + 1));
+                }
+            }
+
+        }
+
+        return result;
+    }
+
+    public enum SearchType {
+        BreadthFirst,
+        DepthFirst,
     }
 
     @Desugar
@@ -136,5 +153,5 @@ public class PipeHelper {
         public int compareTo(IOSegmentResult o) {
             return Integer.compare(distance, o.distance);
         }
-    };
+    }
 }

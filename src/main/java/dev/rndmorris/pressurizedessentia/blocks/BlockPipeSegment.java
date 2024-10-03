@@ -48,11 +48,20 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         return (metadata & IS_IO_SEGMENT) == IS_IO_SEGMENT;
     }
 
-    public static void checkIfShouldBeIO(World world, int x, int y, int z) {
+    /**
+     * Check adjacent blocks for IEssentiaTransport instances and change IO state if needed
+     *
+     * @param world The world to update.
+     * @param x     The x of the block to update
+     * @param y     The y of the block to update
+     * @param z     The z of the block to update
+     * @return True if the block became or ceased being an IO block, or false if there was no change.
+     */
+    public static boolean verifyIOState(World world, int x, int y, int z) {
         final var segment = world.getBlock(x, y, z);
 
         if (segment != pipe_segment) {
-            return;
+            return false;
         }
 
         final var metadata = world.getBlockMetadata(x, y, z);
@@ -62,11 +71,14 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
         if (!isIOSegment && shouldBeIO) {
             world.setBlockMetadataWithNotify(x, y, z, pipeColor.id | IS_IO_SEGMENT, 2);
-            return;
+            return true;
         }
         if (isIOSegment && !shouldBeIO) {
             world.setBlockMetadataWithNotify(x, y, z, pipeColor.id, 2);
+            return true;
         }
+
+        return false;
     }
 
     private static boolean shouldBeIOSegment(World world, int x, int y, int z) {
@@ -93,8 +105,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     @Override
     public void breakBlock(World world, int x, int y, int z, Block blockBroken, int meta) {
         super.breakBlock(world, x, y, z, blockBroken, meta);
-        checkIfShouldBeIO(world, x, y, z);
-        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+        PressurizedEssentia.LOG.info("{} broken. Still exists?", !world.isAirBlock(x, y, z));
+        PipeHelper.notifySegmentRemoved(world, x, y, z);
     }
 
     @Override
@@ -126,14 +138,17 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public void onBlockAdded(World world, int x, int y, int z) {
-        checkIfShouldBeIO(world, x, y, z);
-        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+        super.onBlockAdded(world, x, y, z);
+        verifyIOState(world, x, y, z);
+        PipeHelper.notifySegmentAddedOrChanged(world, x, y, z);
     }
 
     @Override
     public void onNeighborBlockChange(World world, int x, int y, int z, Block neighbor) {
-        checkIfShouldBeIO(world, x, y, z);
-        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+        super.onNeighborBlockChange(world, x, y, z, neighbor);
+        if (!(neighbor instanceof IPipeSegment) && verifyIOState(world, x, y, z)) {
+            PipeHelper.notifySegmentAddedOrChanged(world, x, y, z);
+        }
     }
 
     ///
@@ -180,7 +195,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         final var newColor = player.isSneaking() ? color.prevColor() : color.nextColor();
 
         world.setBlockMetadataWithNotify(x, y, z, newColor.id | connectorBit, 1 | 2);
-        PipeHelper.rebuildPipeNetwork(world, x, y, z);
+        PipeHelper.notifySegmentAddedOrChanged(world, x, y, z);
         return 0;
     }
 

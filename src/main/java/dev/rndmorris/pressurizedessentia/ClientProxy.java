@@ -2,6 +2,7 @@ package dev.rndmorris.pressurizedessentia;
 
 import dev.rndmorris.pressurizedessentia.client.CreativeTab;
 
+@SuppressWarnings("unused")
 public class ClientProxy extends CommonProxy {
 
     private final CreativeTab creativeTab;
