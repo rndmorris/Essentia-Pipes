@@ -2,6 +2,8 @@ package dev.rndmorris.pressurizedessentia.tile;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -19,29 +21,41 @@ import thaumcraft.common.tiles.TileTube;
 public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment {
 
     public static final String CONNECTIONS = "connections";
+    public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
     public static final int MAX_CONNECTIONS = Integer.MAX_VALUE / 4;
 
-    public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
     public final Map<Position, Integer> connections = new HashMap<>();
-
-    private boolean internalChange = false;
 
     public TileEntityIOPipeSegment() {
         super();
     }
 
+    private Stream<IIOPipeSegment> getPeers() {
+        return connections.keySet()
+            .stream()
+            .map(p -> PipeHelper.getIOSegment(worldObj, p))
+            .filter(Objects::nonNull);
+    }
+
+    public void markDirty(boolean internal) {
+        super.markDirty();
+        if (!internal) {
+            BlockPipeSegment.verifyIOState(worldObj, xCoord, yCoord, zCoord);
+        }
+    }
+
+    ///
+    /// Overrides
+    ///
+
     @Override
     public void updateEntity() {
-        super.updateEntity();
+
     }
 
     @Override
     public void markDirty() {
-        super.markDirty();
-        if (!internalChange) {
-            BlockPipeSegment.verifyIOState(worldObj, xCoord, yCoord, zCoord);
-        }
-        internalChange = false;
+        markDirty(false);
     }
 
     @Override
@@ -123,8 +137,13 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     }
 
     ///
-    /// IPipeConnector
+    /// IIOPipeSegment
     ///
+
+    @Override
+    public Position getPosition() {
+        return new Position(xCoord, yCoord, zCoord);
+    }
 
     @Override
     public void rebuildIOConnections(World world, int x, int y, int z) {
@@ -141,8 +160,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
             }
             connections.put(new Position(io.x(), io.y(), io.z()), io.distance());
         }
-        this.internalChange = true;
-        this.markDirty();
+        markDirty(true);
     }
 
     ///

@@ -63,6 +63,10 @@ public class PipeHelper {
         return tileEntity instanceof IIOPipeSegment tileIOSegment ? tileIOSegment : null;
     }
 
+    public static IIOPipeSegment getIOSegment(World world, Position position) {
+        return getIOSegment(world, position.x(), position.y(), position.z());
+    }
+
     /**
      * Notify the pipe network that a segment has been added or changed.
      *
