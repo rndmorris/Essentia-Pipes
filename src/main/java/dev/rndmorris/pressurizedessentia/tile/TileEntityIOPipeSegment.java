@@ -44,7 +44,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
         }
     }
 
-    private void applySuctions() {
+    private void sendEssentiaRequests() {
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var outgoingRequest = getRequestFor(dir);
             if (outgoingRequest == null) {
@@ -60,6 +60,13 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
                     continue;
                 }
                 outgoingRequest.distance = conn.distance() + 1;
+
+                if (outgoingRequest.effectiveSuction() <= 0) {
+                    // connections are ordered by ascending distance
+                    // If our effective suction for one reaches 0 for one, it'll be 0 for everything after
+                    break;
+                }
+
                 final var requestedAccepted = ioSegment.evaluateEssentiaRequest(outgoingRequest);
                 if (requestedAccepted) {
                     break;
@@ -117,6 +124,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
                 // return any leftovers
                 source.addEssentia(takeAspect, leftovers, takeFromFace);
             }
+            markDirty(true);
         }
 
         incomingRequests.clear();
@@ -153,7 +161,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     public void updateEntity() {
         final var step = (byte) (worldObj.getTotalWorldTime() % INTERVAL);
         switch (step) {
-            case 0 -> applySuctions();
+            case 0 -> sendEssentiaRequests();
             case 1 -> distributeEssentia();
         }
     }
@@ -281,6 +289,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
             if (isBestRequest) {
                 // The request is currently the best contender to be fulfilled
                 incomingRequests.setRequest(dir, incomingRequest);
+                markDirty(true);
             }
             return true;
         }
