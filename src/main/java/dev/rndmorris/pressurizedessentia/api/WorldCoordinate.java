@@ -1,14 +1,12 @@
 package dev.rndmorris.pressurizedessentia.api;
 
-import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldProvider;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.github.bsideup.jabel.Desugar;
 
-@SuppressWarnings("unused")
 @Desugar
 public record WorldCoordinate(int dimensionId, int x, int y, int z) {
 
@@ -35,14 +33,26 @@ public record WorldCoordinate(int dimensionId, int x, int y, int z) {
     }
 
     public World getWorld() {
-        return WorldProvider.getProviderForDimension(dimensionId).worldObj;
-    }
-
-    public Block getBlock() {
-        return getWorld().getBlock(x, y, z);
+        if (DimensionManager.isDimensionRegistered(dimensionId)) {
+            return DimensionManager.getWorld(dimensionId);
+        }
+        return null;
     }
 
     public TileEntity getTileEntity() {
-        return getWorld().getTileEntity(x, y, z);
+        final var world = getWorld();
+        if (world == null) {
+            return null;
+        }
+        return world.getTileEntity(x, y, z);
+    }
+
+    public <T> T getTileEntity(Class<T> clazz) {
+        final var entity = getTileEntity();
+        if (entity != null && clazz.isAssignableFrom(entity.getClass())) {
+            // noinspection unchecked
+            return (T) entity;
+        }
+        return null;
     }
 }

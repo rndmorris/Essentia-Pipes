@@ -17,27 +17,39 @@ import com.github.bsideup.jabel.Desugar;
 
 public class PipeHelper {
 
+    public static List<WorldCoordinate> connectedSegments(WorldCoordinate coordinate) {
+        return connectedSegments(coordinate.getWorld(), coordinate.x(), coordinate.y(), coordinate.z());
+    }
+
     /**
      * Get adjacent pipe segments that can connect to the pipe at x, y, z.
      *
      * @param world The world to check.
      * @return A list of connected segments (empty if none), or null if the block at x, y, z was not a pipe.
      */
-    public static List<Position> connectedSegments(World world, int x, int y, int z) {
+    public static List<WorldCoordinate> connectedSegments(World world, int x, int y, int z) {
         final var pipe = getPipeSegment(world, x, y, z);
         if (pipe == null) {
             return Collections.emptyList();
         }
-        final var result = new ArrayList<Position>();
+        final var result = new ArrayList<WorldCoordinate>();
         final var thisColor = pipe.getPipeColor(world, x, y, z);
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final int nX = x + dir.offsetX, nY = y + dir.offsetY, nZ = z + dir.offsetZ;
             final var neighborColor = getPipeColor(world, nX, nY, nZ);
             if (neighborColor != null && thisColor.willConnectTo(neighborColor)) {
-                result.add(new Position(nX, nY, nZ));
+                result.add(new WorldCoordinate(world.provider.dimensionId, nX, nY, nZ));
             }
         }
         return result;
+    }
+
+    public static IPipeSegment getPipeSegment(WorldCoordinate coordinate) {
+        final var world = coordinate.getWorld();
+        if (world == null) {
+            return null;
+        }
+        return getPipeSegment(world, coordinate.x(), coordinate.y(), coordinate.z());
     }
 
     public static IPipeSegment getPipeSegment(World world, int x, int y, int z) {
@@ -49,9 +61,25 @@ public class PipeHelper {
         return tileEntity instanceof IPipeSegment tileSegment ? tileSegment : null;
     }
 
+    public static PipeColor getPipeColor(WorldCoordinate coordinate) {
+        final var world = coordinate.getWorld();
+        if (world == null) {
+            return null;
+        }
+        return getPipeColor(world, coordinate.x(), coordinate.y(), coordinate.z());
+    }
+
     public static PipeColor getPipeColor(World world, int x, int y, int z) {
         final var pipe = getPipeSegment(world, x, y, z);
         return pipe == null ? null : pipe.getPipeColor(world, x, y, z);
+    }
+
+    public static IIOPipeSegment getIOSegment(WorldCoordinate coordinate) {
+        final var world = coordinate.getWorld();
+        if (world == null) {
+            return null;
+        }
+        return getIOSegment(coordinate.getWorld(), coordinate.x(), coordinate.y(), coordinate.z());
     }
 
     public static IIOPipeSegment getIOSegment(World world, int x, int y, int z) {
@@ -63,10 +91,6 @@ public class PipeHelper {
         return tileEntity instanceof IIOPipeSegment tileIOSegment ? tileIOSegment : null;
     }
 
-    public static IIOPipeSegment getIOSegment(World world, Position position) {
-        return getIOSegment(world, position.x(), position.y(), position.z());
-    }
-
     /**
      * Notify the pipe network that a segment has been added or changed.
      *
@@ -76,7 +100,10 @@ public class PipeHelper {
      * @param z     The z of the segment that was added or changed.
      */
     public static void notifySegmentAddedOrChanged(World world, int x, int y, int z) {
-        final var toUpdate = findIOSegmentsInNetwork(world, SearchType.DepthFirst, new Position(x, y, z));
+        final var toUpdate = findIOSegmentsInNetwork(
+            world,
+            SearchType.DepthFirst,
+            new WorldCoordinate(world.provider.dimensionId, x, y, z));
         updateIOSegments(world, toUpdate);
     }
 
@@ -89,7 +116,10 @@ public class PipeHelper {
      * @param z     The z of the segment that was removed.
      */
     public static void notifySegmentRemoved(World world, int x, int y, int z) {
-        final var toUpdate = findIOSegmentsInNetwork(world, SearchType.DepthFirst, Position.adjacent(x, y, z));
+        final var toUpdate = findIOSegmentsInNetwork(
+            world,
+            SearchType.DepthFirst,
+            WorldCoordinate.adjacent(world.provider.dimensionId, x, y, z));
         updateIOSegments(world, toUpdate);
     }
 
@@ -104,15 +134,14 @@ public class PipeHelper {
     }
 
     public static List<IOSegmentResult> findIOSegmentsInNetwork(World world, SearchType searchType,
-        Position... initialPositions) {
-        final var result = new ArrayList<IOSegmentResult>();
+        WorldCoordinate... initialPositions) {
 
         final var queue = Arrays.stream(initialPositions)
             .map(p -> new IOSegmentResult(p.x(), p.y(), p.z(), 0))
             .collect(Collectors.toCollection(ArrayDeque::new));
-        final var visited = new HashSet<Position>();
+        final var visited = new HashSet<WorldCoordinate>();
 
-        final var results = new HashMap<Position, Integer>();
+        final var foundAndDistance = new HashMap<WorldCoordinate, Integer>();
 
         while (!queue.isEmpty()) {
             final var at = switch (searchType) {
@@ -121,12 +150,12 @@ public class PipeHelper {
             };
 
             final int x = at.x(), y = at.y(), z = at.z(), distance = at.distance();
-            final var pos = new Position(x, y, z);
+            final var pos = new WorldCoordinate(world.provider.dimensionId, x, y, z);
             visited.add(pos);
 
             final var ioSegment = getIOSegment(world, x, y, z);
-            if (ioSegment != null && (!results.containsKey(pos) || results.get(pos) > distance)) {
-                results.put(pos, distance);
+            if (ioSegment != null && (!foundAndDistance.containsKey(pos) || foundAndDistance.get(pos) > distance)) {
+                foundAndDistance.put(pos, distance);
             }
 
             for (var adj : connectedSegments(world, x, y, z)) {
@@ -137,7 +166,14 @@ public class PipeHelper {
 
         }
 
-        return result;
+        return foundAndDistance.entrySet()
+            .stream()
+            .map(kv -> {
+                final var coord = kv.getKey();
+                final int distance = kv.getValue();
+                return new IOSegmentResult(coord.x(), coord.y(), coord.z(), distance);
+            })
+            .collect(Collectors.toList());
     }
 
     public enum SearchType {
