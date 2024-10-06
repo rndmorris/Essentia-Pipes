@@ -6,28 +6,25 @@ import thaumcraft.api.aspects.Aspect;
 
 public class EssentiaRequest {
 
-    public WorldCoordinate requestor;
     public Aspect aspect;
+    public int distance = Integer.MAX_VALUE;
     public int suction;
+    public WorldCoordinate requestor;
     public ForgeDirection willOutputTo;
 
-    public EssentiaRequest(WorldCoordinate requestor, Aspect aspect, int suction, ForgeDirection willOutputTo) {
-        this.requestor = requestor;
+    public EssentiaRequest(WorldCoordinate requestor, ForgeDirection willOutputTo, Aspect aspect, int suction) {
         this.aspect = aspect;
-        this.suction = suction;
+        this.requestor = requestor;
         this.willOutputTo = willOutputTo;
+        this.suction = suction;
     }
 
-    public int effectiveSuction(int distance) {
+    public int effectiveSuction() {
         return Integer.max(0, suction - distance);
     }
 
-    public boolean isLowerPriorityThan(EssentiaRequest request, int distance) {
-        final var beatsAspect = this.aspect == null || request.aspect == this.aspect;
-        if (!beatsAspect) {
-            return false;
-        }
-        final var effectiveSuctionDiff = request.effectiveSuction(distance) - effectiveSuction(distance);
+    public boolean isLowerPriorityThan(EssentiaRequest request) {
+        final var effectiveSuctionDiff = request.effectiveSuction() - effectiveSuction();
         if (effectiveSuctionDiff == 0) {
             return request.suction > suction;
         }
