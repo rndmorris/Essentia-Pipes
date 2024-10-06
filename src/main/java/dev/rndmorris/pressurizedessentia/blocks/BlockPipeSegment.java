@@ -105,7 +105,6 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     @Override
     public void breakBlock(World world, int x, int y, int z, Block blockBroken, int meta) {
         super.breakBlock(world, x, y, z, blockBroken, meta);
-        PressurizedEssentia.LOG.info("{} broken. Still exists?", !world.isAirBlock(x, y, z));
         PipeHelper.notifySegmentRemoved(world, x, y, z);
     }
 
