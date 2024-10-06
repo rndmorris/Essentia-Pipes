@@ -5,6 +5,7 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.pressurizedessentia.api.EssentiaRequest;
@@ -45,6 +46,31 @@ public class EssentiaRequestSet {
 
         @Nullable
         EssentiaRequest update(@Nonnull ForgeDirection direction, @Nullable EssentiaRequest request);
+    }
+
+    public void writeToNBT(NBTTagCompound nbtTagCompound) {
+        for (var direction : ForgeDirection.VALID_DIRECTIONS) {
+            final var request = getRequest(direction);
+
+            if (request == null) {
+                continue;
+            }
+
+            final var requestTag = new NBTTagCompound();
+            request.writeToNBT(requestTag);
+            nbtTagCompound.setTag(direction.toString(), requestTag);
+        }
+    }
+
+    public void readFromNBT(NBTTagCompound nbtTagCompound) {
+        for (var direction : ForgeDirection.VALID_DIRECTIONS) {
+            if (!nbtTagCompound.hasKey(direction.toString())) {
+                continue;
+            }
+            final var requestTag = nbtTagCompound.getCompoundTag(direction.toString());
+            final var request = new EssentiaRequest(requestTag);
+            setRequest(direction, request);
+        }
     }
 
 }

@@ -26,6 +26,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     public static final String CONNECTIONS = "connections";
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
     public static final byte INTERVAL = 5;
+    public static final String REQUESTS = "requests";
 
     public final ConnectionSet connections = new ConnectionSet();
     public final EssentiaRequestSet incomingRequests = new EssentiaRequestSet();
@@ -167,6 +168,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
         super.readFromNBT(compound);
         coordinate = null;
         connections.readFromNBT(compound.getCompoundTag(CONNECTIONS));
+        incomingRequests.readFromNBT(compound.getCompoundTag(REQUESTS));
     }
 
     @Override
@@ -175,6 +177,9 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
         final var connectionsTag = new NBTTagCompound();
         connections.writeToNBT(connectionsTag);
         compound.setTag(CONNECTIONS, connectionsTag);
+        final var requestsTag = new NBTTagCompound();
+        incomingRequests.writeToNBT(requestsTag);
+        compound.setTag(REQUESTS, requestsTag);
     }
 
     ///
