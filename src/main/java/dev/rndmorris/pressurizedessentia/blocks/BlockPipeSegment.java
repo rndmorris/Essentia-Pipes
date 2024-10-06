@@ -85,8 +85,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final int dX = x + dir.offsetX, dY = y + dir.offsetY, dZ = z + dir.offsetZ;
             final var tileEntity = world.getTileEntity(dX, dY, dZ);
-            if (tileEntity instanceof IEssentiaTransport transport && !(tileEntity instanceof IPipeSegment)
-                && transport.isConnectable(dir.getOpposite())) {
+            if (tileEntity instanceof IEssentiaTransport && !(tileEntity instanceof IPipeSegment)) {
                 return true;
             }
         }

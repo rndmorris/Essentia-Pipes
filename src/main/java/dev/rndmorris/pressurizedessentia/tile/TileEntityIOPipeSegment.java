@@ -16,12 +16,12 @@ import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
 import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
 import dev.rndmorris.pressurizedessentia.data.ConnectionSet;
 import dev.rndmorris.pressurizedessentia.data.EssentiaRequestSet;
+import thaumcraft.api.TileThaumcraft;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.IAspectContainer;
 import thaumcraft.api.aspects.IEssentiaTransport;
-import thaumcraft.common.tiles.TileTube;
 
-public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment {
+public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSegment {
 
     public static final String CONNECTIONS = "connections";
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
@@ -193,6 +193,21 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     ///
     /// IEssentiaTransport
     ///
+
+    @Override
+    public boolean isConnectable(ForgeDirection dir) {
+        return true;
+    }
+
+    @Override
+    public boolean canInputFrom(ForgeDirection dir) {
+        return true;
+    }
+
+    @Override
+    public boolean canOutputTo(ForgeDirection dir) {
+        return true;
+    }
 
     @Override
     public void setSuction(Aspect aspect, int strength) {}
