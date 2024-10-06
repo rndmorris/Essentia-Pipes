@@ -17,7 +17,22 @@ public record ConnectionInfo(WorldCoordinate coordinate, int distance)
 
     @Override
     public int compare(ConnectionInfo thiz, ConnectionInfo that) {
-        return Integer.compare(thiz.distance, that.distance);
+        var compare = Integer.compare(thiz.distance, that.distance);
+        if (compare != 0) {
+            return compare;
+        }
+
+        compare = Integer.compare(thiz.coordinate.x(), that.coordinate.x());
+        if (compare != 0) {
+            return compare;
+        }
+
+        compare = Integer.compare(thiz.coordinate.y(), that.coordinate.y());
+        if (compare != 0) {
+            return compare;
+        }
+
+        return Integer.compare(thiz.coordinate.z(), that.coordinate.z());
     }
 
     public IIOPipeSegment getIOSegment() {
