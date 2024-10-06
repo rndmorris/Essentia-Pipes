@@ -49,12 +49,17 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
             if (outgoingRequest == null) {
                 continue;
             }
+            outgoingRequest.distance = 1;
+            if (this.evaluateEssentiaRequest(outgoingRequest)) {
+                continue;
+            }
             for (var conn : connections) {
                 final var ioSegment = conn.getIOSegment();
                 if (ioSegment == null) {
                     continue;
                 }
-                final var requestedAccepted = ioSegment.evaluateEssentiaRequest(outgoingRequest, conn.distance());
+                outgoingRequest.distance = conn.distance() + 1;
+                final var requestedAccepted = ioSegment.evaluateEssentiaRequest(outgoingRequest);
                 if (requestedAccepted) {
                     break;
                 }
@@ -73,7 +78,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
         if (suctionAmount < 1) {
             return null;
         }
-        return new EssentiaRequest(here, transport.getSuctionType(destFace), suctionAmount, dir);
+        return new EssentiaRequest(here, dir, transport.getSuctionType(destFace), suctionAmount);
     }
 
     private void distributeEssentia() {
@@ -81,8 +86,12 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
 
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var savedRequest = incomingRequests.getRequest(dir);
+            if (savedRequest == null) {
+                continue;
+            }
+
             final var source = getEssentiaProvider(dir);
-            if (source == null || savedRequest == null) {
+            if (source == null) {
                 continue;
             }
 
@@ -234,38 +243,52 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     }
 
     @Override
-    public boolean evaluateEssentiaRequest(EssentiaRequest incomingRequest, int distance) {
+    public boolean evaluateEssentiaRequest(EssentiaRequest incomingRequest) {
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var sourceFace = dir.getOpposite();
             final var transport = getEssentiaProvider(dir);
+
+            // Can the transport output in our direction?
+
             if (transport == null || !transport.canOutputTo(sourceFace)) {
                 continue;
             }
-            if (transport.getEssentiaAmount(sourceFace) <= 0) {
-                continue;
-            }
             final var competingSuction = transport.getMinimumSuction();
-            if (competingSuction >= incomingRequest.effectiveSuction(distance)) {
+            if (competingSuction >= incomingRequest.effectiveSuction()) {
                 continue;
             }
-            final var savedRequest = incomingRequests.getRequest(dir);
-            final var isBestRequest = savedRequest == null
-                || savedRequest.isLowerPriorityThan(incomingRequest, distance);
-            var hasEnoughEssentia = false;
 
-            if (transport instanceof IAspectContainer container) {
-                if (incomingRequest.aspect == null || container.doesContainerContainAmount(incomingRequest.aspect, 1)) {
-                    hasEnoughEssentia = true;
-                }
-            } else
-                if (incomingRequest.aspect == null || transport.getEssentiaType(sourceFace) == incomingRequest.aspect) {
-                    hasEnoughEssentia = true;
-                }
+            // Can the transport provide the correct essentia?
 
-            if (isBestRequest && hasEnoughEssentia) {
-                incomingRequests.setRequest(dir, incomingRequest);
-                return true;
+            if (transport.getEssentiaAmount(sourceFace) <= 0) {
+                // It contains nothing
+                continue;
             }
+
+            final var requestedAspect = incomingRequest.aspect;
+            if (transport instanceof IAspectContainer container) {
+                if (requestedAspect != null && !container.doesContainerContainAmount(requestedAspect, 1)) {
+                    // It doesn't contain what's requested
+                    continue;
+                }
+            } else {
+                if (requestedAspect != null && transport.getEssentiaType(sourceFace) != requestedAspect) {
+                    // It doesn't contain what's requested
+                    continue;
+                }
+            }
+
+            // We *could* potentially fulfill the request at this point
+            // Is it the best request we've gotten so far?
+
+            final var savedRequest = incomingRequests.getRequest(dir);
+            final var isBestRequest = savedRequest == null || savedRequest.isLowerPriorityThan(incomingRequest);
+
+            if (isBestRequest) {
+                // The request is currently the best contender to be fulfilled
+                incomingRequests.setRequest(dir, incomingRequest);
+            }
+            return true;
         }
         return false;
     }
@@ -279,23 +302,16 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     }
 
     @Override
-    public void rebuildIOConnections(World world, int x, int y, int z) {
-        final var results = PipeHelper
-            .findIOSegmentsInNetwork(world, PipeHelper.SearchType.BreadthFirst, getCoordinate())
-            .stream()
-            .sorted()
-            .iterator();
+    public void rebuildIOConnections() {
         this.connections.clear();
-        while (results.hasNext()) {
-            final var io = results.next();
-            if (io.x() == xCoord && io.y() == yCoord && io.z() == zCoord) {
-                continue;
-            }
-            connections.add(
-                new ConnectionInfo(
-                    new WorldCoordinate(world.provider.dimensionId, io.x(), io.y(), io.z()),
-                    io.distance()));
-        }
+        PipeHelper.findIOSegmentsInNetwork(worldObj, PipeHelper.SearchType.BreadthFirst, getCoordinate())
+            .stream()
+            .filter(io -> !(io.x() == xCoord && io.y() == yCoord && io.z() == zCoord))
+            .map(
+                io -> new ConnectionInfo(
+                    new WorldCoordinate(worldObj.provider.dimensionId, io.x(), io.y(), io.z()),
+                    io.distance()))
+            .forEach(connections::add);
         markDirty(true);
     }
 
