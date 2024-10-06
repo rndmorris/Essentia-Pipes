@@ -129,7 +129,7 @@ public class PipeHelper {
             if (ioSegment == null) {
                 continue;
             }
-            ioSegment.rebuildIOConnections(world, result.x, result.y, result.z);
+            ioSegment.rebuildIOConnections();
         }
     }
 
