@@ -1,5 +1,7 @@
 package dev.rndmorris.pressurizedessentia.api;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
@@ -30,6 +32,17 @@ public record WorldCoordinate(int dimensionId, int x, int y, int z) {
 
     public WorldCoordinate shift(ForgeDirection direction) {
         return shift(dimensionId, x, y, z, direction);
+    }
+
+    public static WorldCoordinate fromTileEntity(@Nullable Object object) {
+        if (!(object instanceof TileEntity tileEntity)) {
+            return null;
+        }
+        return new WorldCoordinate(
+            tileEntity.getWorldObj().provider.dimensionId,
+            tileEntity.xCoord,
+            tileEntity.yCoord,
+            tileEntity.zCoord);
     }
 
     public World getWorld() {

@@ -9,13 +9,13 @@ public class EssentiaRequest {
     public Aspect aspect;
     public int distance = Integer.MAX_VALUE;
     public int suction;
-    public WorldCoordinate requestor;
-    public ForgeDirection willOutputTo;
+    public WorldCoordinate destination;
+    public ForgeDirection destinationFace;
 
-    public EssentiaRequest(WorldCoordinate requestor, ForgeDirection willOutputTo, Aspect aspect, int suction) {
+    public EssentiaRequest(WorldCoordinate destination, ForgeDirection destinationFace, Aspect aspect, int suction) {
         this.aspect = aspect;
-        this.requestor = requestor;
-        this.willOutputTo = willOutputTo;
+        this.destination = destination;
+        this.destinationFace = destinationFace;
         this.suction = suction;
     }
 
@@ -23,10 +23,11 @@ public class EssentiaRequest {
         return Integer.max(0, suction - distance);
     }
 
-    public boolean isLowerPriorityThan(EssentiaRequest request) {
+    public boolean isSuperceededBy(EssentiaRequest request) {
         final var effectiveSuctionDiff = request.effectiveSuction() - effectiveSuction();
         if (effectiveSuctionDiff == 0) {
-            return request.suction > suction;
+            // prefer closer connections, in case of effective suction ties
+            return request.distance < distance;
         }
         return effectiveSuctionDiff > 0;
     }

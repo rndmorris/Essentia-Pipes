@@ -25,7 +25,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
 
     public static final String CONNECTIONS = "connections";
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
-    public static final byte INTERVAL = 10;
+    public static final byte INTERVAL = 5;
 
     public final ConnectionSet connections = new ConnectionSet();
     public final EssentiaRequestSet incomingRequests = new EssentiaRequestSet();
@@ -68,80 +68,80 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     }
 
     private @Nullable EssentiaRequest getRequestFor(ForgeDirection dir) {
-        final var here = this.getCoordinate();
-        final var destFace = dir.getOpposite();
-        final var transport = getEssentiaAcceptor(dir);
-        if (transport == null) {
+        final var destinationBlock = this.getCoordinate()
+            .shift(dir);
+        final var insertToFace = dir.getOpposite();
+        final var transport = destinationBlock.getTileEntity(IEssentiaTransport.class);
+        if (transport == null || transport instanceof IIOPipeSegment || !transport.canInputFrom(insertToFace)) {
             return null;
         }
-        final var suctionAmount = transport.getSuctionAmount(destFace);
+        final var suctionAmount = transport.getSuctionAmount(insertToFace);
         if (suctionAmount < 1) {
             return null;
         }
-        return new EssentiaRequest(here, dir, transport.getSuctionType(destFace), suctionAmount);
+        return new EssentiaRequest(
+            destinationBlock,
+            insertToFace,
+            transport.getSuctionType(insertToFace),
+            suctionAmount);
     }
 
     private void distributeEssentia() {
         final var amountToTake = 1;
 
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
-            final var savedRequest = incomingRequests.getRequest(dir);
-            if (savedRequest == null) {
+            final var request = incomingRequests.getRequest(dir);
+            if (request == null) {
                 continue;
             }
 
-            final var source = getEssentiaProvider(dir);
-            if (source == null) {
-                continue;
-            }
-
-            final var requestor = PipeHelper.getIOSegment(savedRequest.requestor);
-            if (requestor == null) {
-                continue;
-            }
-
+            final var source = getEssentiaTransport(dir);
             final var takeFromFace = dir.getOpposite();
-            final var takenAmount = source.takeEssentia(savedRequest.aspect, amountToTake, takeFromFace);
-            if (takenAmount < 1) {
+            if (source == null || !source.canOutputTo(takeFromFace)) {
                 continue;
             }
 
-            final var requestFulfilled = requestor.acceptRequestFulfillment(savedRequest, amountToTake);
+            final var destination = request.destination.getTileEntity(IEssentiaTransport.class);
+            if (destination == null || !destination.canInputFrom(request.destinationFace)) {
+                continue;
+            }
 
-            if (!requestFulfilled) {
-                source.addEssentia(savedRequest.aspect, 1, takeFromFace);
+            // Some containers (e.g. jars) don't giving essentia when aspect is null
+            final var takeAspect = request.aspect != null ? request.aspect : pickAspectToTake(source, takeFromFace);
+            final var amountTaken = source.takeEssentia(takeAspect, amountToTake, takeFromFace);
+            final var amountAdded = destination.addEssentia(takeAspect, amountTaken, request.destinationFace);
+
+            final var leftovers = amountTaken - amountAdded;
+            if (leftovers > 0) {
+                // return any leftovers
+                source.addEssentia(takeAspect, leftovers, takeFromFace);
             }
         }
-    }
 
-    private void cleanupRequests() {
         incomingRequests.clear();
     }
 
-    /**
-     * Check adjacent blocks for non-pipe essentia transports
-     */
-    private IEssentiaTransport getEssentiaAcceptor(ForgeDirection dir) {
-        final var here = this.getCoordinate();
-        final var there = here.shift(dir);
-        final var transport = there.getTileEntity(IEssentiaTransport.class);
-        if (transport == null || transport instanceof IIOPipeSegment) {
-            return null;
+    private Aspect pickAspectToTake(IEssentiaTransport source, ForgeDirection takeFromFace) {
+        final var fromFace = source.getEssentiaType(takeFromFace);
+        if (fromFace != null) {
+            return fromFace;
         }
-        final var canAccept = transport.canInputFrom(dir.getOpposite());
-        return canAccept ? transport : null;
-
+        if (source instanceof IAspectContainer container) {
+            final var containedAspects = container.getAspects()
+                .getAspects();
+            return containedAspects[worldObj.rand.nextInt(containedAspects.length)];
+        }
+        return null;
     }
 
-    private IEssentiaTransport getEssentiaProvider(ForgeDirection dir) {
+    private IEssentiaTransport getEssentiaTransport(ForgeDirection dir) {
         final var here = this.getCoordinate();
         final var there = here.shift(dir);
         final var transport = there.getTileEntity(IEssentiaTransport.class);
         if (transport == null || transport instanceof IIOPipeSegment) {
             return null;
         }
-        final var canProvide = transport.canOutputTo(dir.getOpposite());
-        return canProvide ? transport : null;
+        return transport;
     }
 
     ///
@@ -154,7 +154,6 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
         switch (step) {
             case 0 -> applySuctions();
             case 1 -> distributeEssentia();
-            case 2 -> cleanupRequests();
         }
     }
 
@@ -230,49 +229,39 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
     ///
 
     @Override
-    public boolean acceptRequestFulfillment(EssentiaRequest fulfilledRequest, int amount) {
-        final var here = getCoordinate();
-        final var there = here.shift(fulfilledRequest.willOutputTo);
-        final var transport = there.getTileEntity(IEssentiaTransport.class);
-        if (transport == null) {
-            return false;
-        }
-        final var destinationFace = fulfilledRequest.willOutputTo.getOpposite();
-        final var amountRemaining = transport.addEssentia(fulfilledRequest.aspect, 1, destinationFace);
-        return amountRemaining > 0;
-    }
-
-    @Override
     public boolean evaluateEssentiaRequest(EssentiaRequest incomingRequest) {
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var sourceFace = dir.getOpposite();
-            final var transport = getEssentiaProvider(dir);
+            final var potentialSource = getEssentiaTransport(dir);
 
-            // Can the transport output in our direction?
-
-            if (transport == null || !transport.canOutputTo(sourceFace)) {
+            // Can the source output in our direction?
+            if (potentialSource == null || !potentialSource.canOutputTo(sourceFace)) {
                 continue;
             }
-            final var competingSuction = transport.getMinimumSuction();
-            if (competingSuction >= incomingRequest.effectiveSuction()) {
+            final var sourceCoords = WorldCoordinate.fromTileEntity(potentialSource);
+            if (incomingRequest.destination.equals(sourceCoords)) {
+                // no requesting from yourself
+                continue;
+            }
+            if (potentialSource.getMinimumSuction() >= incomingRequest.effectiveSuction()) {
                 continue;
             }
 
             // Can the transport provide the correct essentia?
 
-            if (transport.getEssentiaAmount(sourceFace) <= 0) {
+            final var requestedAspect = incomingRequest.aspect;
+            if (potentialSource.getEssentiaAmount(sourceFace) <= 0) {
                 // It contains nothing
                 continue;
             }
 
-            final var requestedAspect = incomingRequest.aspect;
-            if (transport instanceof IAspectContainer container) {
+            if (potentialSource instanceof IAspectContainer container) {
                 if (requestedAspect != null && !container.doesContainerContainAmount(requestedAspect, 1)) {
                     // It doesn't contain what's requested
                     continue;
                 }
             } else {
-                if (requestedAspect != null && transport.getEssentiaType(sourceFace) != requestedAspect) {
+                if (requestedAspect != null && potentialSource.getEssentiaType(sourceFace) != requestedAspect) {
                     // It doesn't contain what's requested
                     continue;
                 }
@@ -282,7 +271,7 @@ public class TileEntityIOPipeSegment extends TileTube implements IIOPipeSegment 
             // Is it the best request we've gotten so far?
 
             final var savedRequest = incomingRequests.getRequest(dir);
-            final var isBestRequest = savedRequest == null || savedRequest.isLowerPriorityThan(incomingRequest);
+            final var isBestRequest = savedRequest == null || savedRequest.isSuperceededBy(incomingRequest);
 
             if (isBestRequest) {
                 // The request is currently the best contender to be fulfilled
