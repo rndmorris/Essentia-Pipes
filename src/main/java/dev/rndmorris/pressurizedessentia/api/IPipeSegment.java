@@ -1,9 +1,12 @@
 package dev.rndmorris.pressurizedessentia.api;
 
-import net.minecraft.world.World;
+import net.minecraft.world.IBlockAccess;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public interface IPipeSegment {
 
-    PipeColor getPipeColor(World world, int x, int y, int z);
+    boolean canConnectTo(IBlockAccess world, int x, int y, int z, ForgeDirection face);
+
+    PipeColor getPipeColor(IBlockAccess world, int x, int y, int z);
 
 }

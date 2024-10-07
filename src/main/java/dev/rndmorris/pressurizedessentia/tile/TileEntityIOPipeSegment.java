@@ -3,14 +3,12 @@ package dev.rndmorris.pressurizedessentia.tile;
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
 import dev.rndmorris.pressurizedessentia.api.ConnectionInfo;
 import dev.rndmorris.pressurizedessentia.api.EssentiaRequest;
 import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
-import dev.rndmorris.pressurizedessentia.api.PipeColor;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
 import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
 import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
@@ -331,15 +329,5 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
                     io.distance()))
             .forEach(connections::add);
         markDirty(true);
-    }
-
-    ///
-    /// IPipeSegment
-    ///
-
-    @Override
-    public PipeColor getPipeColor(World world, int x, int y, int z) {
-        final var segment = PipeHelper.getPipeSegment(world, xCoord, yCoord, zCoord);
-        return segment != null ? segment.getPipeColor(world, xCoord, yCoord, zCoord) : null;
     }
 }

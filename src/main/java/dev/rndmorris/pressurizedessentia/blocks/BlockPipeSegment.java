@@ -1,14 +1,15 @@
 package dev.rndmorris.pressurizedessentia.blocks;
 
-import dev.rndmorris.pressurizedessentia.client.BlockPipeSegmentRenderer;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -21,10 +22,13 @@ import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeColor;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
+import dev.rndmorris.pressurizedessentia.client.BlockPipeSegmentRenderer;
 import dev.rndmorris.pressurizedessentia.items.ItemBlockPipeSegment;
 import dev.rndmorris.pressurizedessentia.tile.TileEntityIOPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.api.wands.IWandable;
+
+import java.util.List;
 
 public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
 
@@ -97,10 +101,37 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     protected BlockPipeSegment() {
         super(Material.iron);
-        final var pixel = 1F / 16F;
-        final var inset = pixel * 6;
-        setBlockBounds(inset, inset, inset, 1F - inset, 1F - inset, 1F - inset);
+        final var bound = calcBoundingBox(null, 0, 0, 0);
+        setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
     }
+
+    private float[] calcBoundingBox(World world, int x, int y, int z) {
+        final var pixel = 1F / 16F;
+        final var initialInset = pixel * 6;
+        float minX = initialInset, maxX = 1F - initialInset, minY = initialInset, maxY = 1F - initialInset, minZ = initialInset,
+            maxZ = 1F - initialInset;
+        if (world != null) {
+            for (var dir : ForgeDirection.VALID_DIRECTIONS) {
+                if (!PipeHelper.canConnect(world, x, y, z, dir)) {
+                    continue;
+                }
+                switch (dir) {
+                    case DOWN -> minY = 0;
+                    case UP -> maxY = 1;
+                    case NORTH -> minZ = 0;
+                    case SOUTH -> maxZ = 1;
+                    case WEST -> minX = 0;
+                    case EAST -> maxX = 1;
+                }
+            }
+        }
+
+        return new float[] { minX, minY, minZ, maxX, maxY, maxZ };
+    }
+
+    //
+    // Overrides
+    //
 
     @Override
     public void breakBlock(World world, int x, int y, int z, Block blockBroken, int meta) {
@@ -136,6 +167,21 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
+    public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
+        final var bound = calcBoundingBox(world, x, y, z);
+        this.setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
+        return super.getSelectedBoundingBoxFromPool(world, x, y, z);
+    }
+
+    @Override
+    public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB boundingBox, List<AxisAlignedBB> list, Entity entity) {
+        final var bound = calcBoundingBox(world, x, y, z);
+        this.setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
+        super.addCollisionBoxesToList(world, x, y, z, boundingBox, list, entity);
+    }
+
+    @Override
     public boolean isOpaqueCube() {
         return false;
     }
@@ -159,7 +205,16 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     /// IPressurizedPipe
     ///
 
-    public PipeColor getPipeColor(World world, int x, int y, int z) {
+    @Override
+    public boolean canConnectTo(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
+        final int dX = x + face.offsetX, dY = y + face.offsetY, dZ = z + face.offsetZ;
+        final var adjacentBlock = world.getBlock(dX, dY, dZ);
+
+        return this == adjacentBlock && this.getPipeColor(world, x, y, z)
+            .willConnectTo(this.getPipeColor(world, dX, dY, dZ));
+    }
+
+    public PipeColor getPipeColor(IBlockAccess world, int x, int y, int z) {
         final var metadata = world.getBlockMetadata(x, y, z);
         return pipeColorFromMetadata(metadata);
     }

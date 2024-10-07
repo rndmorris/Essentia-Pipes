@@ -10,15 +10,47 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.github.bsideup.jabel.Desugar;
+import thaumcraft.api.aspects.IEssentiaTransport;
 
 public class PipeHelper {
 
-    public static List<WorldCoordinate> connectedSegments(WorldCoordinate coordinate) {
-        return connectedSegments(coordinate.getWorld(), coordinate.x(), coordinate.y(), coordinate.z());
+    public static boolean canConnect(IBlockAccess world, int x, int y, int z, ForgeDirection d) {
+        final int dX = x + d.offsetX, dY = y + d.offsetY, dZ = z + d.offsetZ;
+        final var here = getPipeSegment(world, x, y, z);
+        if (here == null) {
+            return false;
+        }
+        final var there = getPipeSegment(world, dX, dY, dZ);
+        if (there == null) {
+            return false;
+        }
+        return here.canConnectTo(world, x, y, z, d) || there.canConnectTo(world, dX, dY, dZ, d.getOpposite());
+    }
+
+    public static boolean canVisuallyConnect(IBlockAccess world, int x, int y, int z, ForgeDirection side) {
+        final int dX = x + side.offsetX, dY = y + side.offsetY, dZ = z + side.offsetZ;
+        final var here = getPipeSegment(world, x, y, z);
+        if (here == null) {
+            return false;
+        }
+        final var there = world.getBlock(dX, dY, dZ);
+        if (there == null) {
+            return false;
+        }
+        final var neighborSide = side.getOpposite();
+        if (there instanceof IPipeSegment pipe) {
+            return here.canConnectTo(world, x, y, z, side) || pipe.canConnectTo(world, dX, dY, dZ, neighborSide);
+        }
+        final var thereTile = world.getTileEntity(dX, dY, dZ);
+        if (thereTile instanceof IEssentiaTransport transport) {
+            return transport.isConnectable(neighborSide);
+        }
+        return false;
     }
 
     /**
@@ -27,46 +59,29 @@ public class PipeHelper {
      * @param world The world to check.
      * @return A list of connected segments (empty if none), or null if the block at x, y, z was not a pipe.
      */
-    public static List<WorldCoordinate> connectedSegments(World world, int x, int y, int z) {
+    public static List<WorldCoordinate> getConnectedNeighbors(World world, int x, int y, int z) {
         final var pipe = getPipeSegment(world, x, y, z);
         if (pipe == null) {
             return Collections.emptyList();
         }
         final var result = new ArrayList<WorldCoordinate>();
-        final var thisColor = pipe.getPipeColor(world, x, y, z);
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final int nX = x + dir.offsetX, nY = y + dir.offsetY, nZ = z + dir.offsetZ;
-            final var neighborColor = getPipeColor(world, nX, nY, nZ);
-            if (neighborColor != null && thisColor.willConnectTo(neighborColor)) {
+            final var canConnect = canConnect(world, x, y, z, dir);
+            if (canConnect) {
                 result.add(new WorldCoordinate(world.provider.dimensionId, nX, nY, nZ));
             }
         }
         return result;
     }
 
-    public static IPipeSegment getPipeSegment(WorldCoordinate coordinate) {
-        final var world = coordinate.getWorld();
-        if (world == null) {
-            return null;
-        }
-        return getPipeSegment(world, coordinate.x(), coordinate.y(), coordinate.z());
-    }
-
-    public static IPipeSegment getPipeSegment(World world, int x, int y, int z) {
+    public static IPipeSegment getPipeSegment(IBlockAccess world, int x, int y, int z) {
         final var block = world.getBlock(x, y, z);
         if (block instanceof IPipeSegment blockSegment) {
             return blockSegment;
         }
         final var tileEntity = world.getTileEntity(x, y, z);
         return tileEntity instanceof IPipeSegment tileSegment ? tileSegment : null;
-    }
-
-    public static PipeColor getPipeColor(WorldCoordinate coordinate) {
-        final var world = coordinate.getWorld();
-        if (world == null) {
-            return null;
-        }
-        return getPipeColor(world, coordinate.x(), coordinate.y(), coordinate.z());
     }
 
     public static PipeColor getPipeColor(World world, int x, int y, int z) {
@@ -158,7 +173,7 @@ public class PipeHelper {
                 foundAndDistance.put(pos, distance);
             }
 
-            for (var adj : connectedSegments(world, x, y, z)) {
+            for (var adj : getConnectedNeighbors(world, x, y, z)) {
                 if (!visited.contains(adj)) {
                     queue.push(new IOSegmentResult(adj.x(), adj.y(), adj.z(), distance + 1));
                 }
