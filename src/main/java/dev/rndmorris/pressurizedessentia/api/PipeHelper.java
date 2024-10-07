@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.github.bsideup.jabel.Desugar;
+
 import thaumcraft.api.aspects.IEssentiaTransport;
 
 public class PipeHelper {
@@ -32,7 +33,7 @@ public class PipeHelper {
         return here.canConnectTo(world, x, y, z, d) || there.canConnectTo(world, dX, dY, dZ, d.getOpposite());
     }
 
-    public static boolean canVisuallyConnect(IBlockAccess world, int x, int y, int z, ForgeDirection side) {
+    public static boolean shouldVisuallyConnect(IBlockAccess world, int x, int y, int z, ForgeDirection side) {
         final int dX = x + side.offsetX, dY = y + side.offsetY, dZ = z + side.offsetZ;
         final var here = getPipeSegment(world, x, y, z);
         if (here == null) {

@@ -1,5 +1,8 @@
 package dev.rndmorris.pressurizedessentia.blocks;
 
+import java.util.List;
+
+import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -27,8 +30,6 @@ import dev.rndmorris.pressurizedessentia.items.ItemBlockPipeSegment;
 import dev.rndmorris.pressurizedessentia.tile.TileEntityIOPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.api.wands.IWandable;
-
-import java.util.List;
 
 public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
 
@@ -90,7 +91,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final int dX = x + dir.offsetX, dY = y + dir.offsetY, dZ = z + dir.offsetZ;
             final var tileEntity = world.getTileEntity(dX, dY, dZ);
-            if (tileEntity instanceof IEssentiaTransport && !(tileEntity instanceof IPipeSegment)) {
+            if (tileEntity instanceof IEssentiaTransport && !(tileEntity instanceof IIOPipeSegment)) {
                 return true;
             }
         }
@@ -98,6 +99,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     public final IIcon[] icons = new IIcon[PipeColor.COLORS.length * 2];
+    public final IIcon[] extendedIcons = new IIcon[PipeColor.COLORS.length * 2];
 
     protected BlockPipeSegment() {
         super(Material.iron);
@@ -106,10 +108,9 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     private float[] calcBoundingBox(World world, int x, int y, int z) {
-        final var pixel = 1F / 16F;
-        final var initialInset = pixel * 6;
-        float minX = initialInset, maxX = 1F - initialInset, minY = initialInset, maxY = 1F - initialInset, minZ = initialInset,
-            maxZ = 1F - initialInset;
+        float minX = BlockPipeSegmentRenderer.INSET, maxX = BlockPipeSegmentRenderer.R_INSET,
+            minY = BlockPipeSegmentRenderer.INSET, maxY = BlockPipeSegmentRenderer.R_INSET,
+            minZ = BlockPipeSegmentRenderer.INSET, maxZ = BlockPipeSegmentRenderer.R_INSET;
         if (world != null) {
             for (var dir : ForgeDirection.VALID_DIRECTIONS) {
                 if (!PipeHelper.canConnect(world, x, y, z, dir)) {
@@ -151,7 +152,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public IIcon getIcon(int side, int metadata) {
-        return icons[metadata];
+        return extendedIcons[metadata];
     }
 
     @Override
@@ -175,7 +176,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     @Override
-    public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB boundingBox, List<AxisAlignedBB> list, Entity entity) {
+    public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB boundingBox,
+        List<AxisAlignedBB> list, Entity entity) {
         final var bound = calcBoundingBox(world, x, y, z);
         this.setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
         super.addCollisionBoxesToList(world, x, y, z, boundingBox, list, entity);
@@ -225,6 +227,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         for (var index = 0; index < icons.length; ++index) {
             final var path = String.format("%s:%s_%02d", PressurizedEssentia.MODID, ID, index);
             icons[index] = reg.registerIcon(path);
+            final var extendedPath = String.format("%s:%s_extended_%02d", PressurizedEssentia.MODID, ID, index);
+            extendedIcons[index] = reg.registerIcon(extendedPath);
         }
     }
 
