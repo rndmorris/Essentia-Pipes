@@ -1,5 +1,6 @@
 package dev.rndmorris.pressurizedessentia;
 
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
 import dev.rndmorris.pressurizedessentia.client.CreativeTab;
@@ -11,6 +12,10 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         BlockPipeSegment.preInit();
+    }
+
+    public void init(FMLInitializationEvent event) {
+
     }
 
     public CreativeTab getCreativeTab() {

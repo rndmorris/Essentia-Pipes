@@ -1,5 +1,6 @@
 package dev.rndmorris.pressurizedessentia.blocks;
 
+import dev.rndmorris.pressurizedessentia.client.BlockPipeSegmentRenderer;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -127,6 +128,11 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     public IIcon getIcon(IBlockAccess worldIn, int x, int y, int z, int side) {
         final var metadata = worldIn.getBlockMetadata(x, y, z);
         return getIcon(side, metadata);
+    }
+
+    @Override
+    public int getRenderType() {
+        return BlockPipeSegmentRenderer.renderId;
     }
 
     @Override
