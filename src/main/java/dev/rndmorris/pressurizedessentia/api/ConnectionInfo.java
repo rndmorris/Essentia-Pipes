@@ -3,11 +3,18 @@ package dev.rndmorris.pressurizedessentia.api;
 import java.util.Comparator;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.github.bsideup.jabel.Desugar;
 
+/**
+ * Represents a connection between one IIOPipeSegment and another, and the taxicab distance between them.
+ *
+ * @param coordinate The position of the target IIOPipeSegment.
+ * @param distance   The taxicab distance between this ConnectionInfo's owner and the coordinate.
+ */
 @Desugar
-public record ConnectionInfo(WorldCoordinate coordinate, int distance)
+public record ConnectionInfo(@Nonnull WorldCoordinate coordinate, int distance)
     implements Comparable<ConnectionInfo>, Comparator<ConnectionInfo> {
 
     @Override
@@ -22,20 +29,15 @@ public record ConnectionInfo(WorldCoordinate coordinate, int distance)
             return compare;
         }
 
-        compare = Integer.compare(thiz.coordinate.x(), that.coordinate.x());
-        if (compare != 0) {
-            return compare;
-        }
-
-        compare = Integer.compare(thiz.coordinate.y(), that.coordinate.y());
-        if (compare != 0) {
-            return compare;
-        }
-
-        return Integer.compare(thiz.coordinate.z(), that.coordinate.z());
+        return thiz.coordinate.compareTo(that.coordinate);
     }
 
-    public IIOPipeSegment getIOSegment() {
-        return PipeHelper.getIOSegment(coordinate);
+    /**
+     * Get the IIOPipeSegment at the coordinate.
+     * 
+     * @return The IIOPipeSegment if it exists, or null if not.
+     */
+    public @Nullable IIOPipeSegment getIOSegment() {
+        return coordinate.getTileEntity(IIOPipeSegment.class);
     }
 }

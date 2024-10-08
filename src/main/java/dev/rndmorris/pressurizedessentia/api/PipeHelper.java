@@ -2,13 +2,11 @@ package dev.rndmorris.pressurizedessentia.api;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -18,93 +16,63 @@ import com.github.bsideup.jabel.Desugar;
 
 import thaumcraft.api.aspects.IEssentiaTransport;
 
+/**
+ * Helper methods for interacting with the pipe network.
+ */
 public class PipeHelper {
 
-    public static boolean canConnect(IBlockAccess world, int x, int y, int z, ForgeDirection d) {
-        final int dX = x + d.offsetX, dY = y + d.offsetY, dZ = z + d.offsetZ;
-        final var here = getPipeSegment(world, x, y, z);
-        if (here == null) {
+    /**
+     * Whether the pipe segment at the given position should connect in the given direction.
+     *
+     * @param here      The position of the pipe segment to check.
+     * @param direction The direction to check.
+     * @return True if there is a pipe segment both here and in the given direction, and they can connect, or false
+     *         otherwise.
+     */
+    public static boolean canConnect(@Nonnull WorldCoordinate here, @Nonnull ForgeDirection direction) {
+        final var herePipe = here.getBlock(IPipeSegment.class);
+        if (herePipe == null) {
             return false;
         }
-        final var there = getPipeSegment(world, dX, dY, dZ);
-        if (there == null) {
+        final var there = here.shift(direction);
+        final var therePipe = there.getBlock(IPipeSegment.class);
+        if (therePipe == null) {
             return false;
         }
-        return here.canConnectTo(world, x, y, z, d) || there.canConnectTo(world, dX, dY, dZ, d.getOpposite());
+        return herePipe.canConnectTo(here, direction) || therePipe.canConnectTo(there, direction.getOpposite());
     }
 
-    public static boolean shouldVisuallyConnect(IBlockAccess world, int x, int y, int z, ForgeDirection side) {
-        final int dX = x + side.offsetX, dY = y + side.offsetY, dZ = z + side.offsetZ;
-        final var here = getPipeSegment(world, x, y, z);
-        if (here == null) {
+    /**
+     * Whether the pipe segment at the given position should visually connect in the given direction.
+     *
+     * @param world     The world in which the pipe segment to check exists.
+     * @param x         The x coordinate of the pipe segment to check.
+     * @param y         The y coordinate of the pipe segment to check.
+     * @param z         The z coordinate of the pipe segment to check.
+     * @param direction The direction to check.
+     * @return True if there is a pipe segment here, a pipe segment in the given direction it can connect to, or an
+     *         IEssentiaTransport tile in the given direction.
+     */
+    public static boolean canConnectVisually(IBlockAccess world, int x, int y, int z, ForgeDirection direction) {
+        final int dX = x + direction.offsetX, dY = y + direction.offsetY, dZ = z + direction.offsetZ;
+        final var here = world.getBlock(x, y, z);
+        if (!(here instanceof IPipeSegment herePipe)) {
             return false;
         }
         final var there = world.getBlock(dX, dY, dZ);
         if (there == null) {
             return false;
         }
-        final var neighborSide = side.getOpposite();
+        final var neighborSide = direction.getOpposite();
         if (there instanceof IPipeSegment pipe) {
-            return here.canConnectTo(world, x, y, z, side) || pipe.canConnectTo(world, dX, dY, dZ, neighborSide);
+            return herePipe.canConnectTo(world, x, y, z, direction)
+                || pipe.canConnectTo(world, dX, dY, dZ, neighborSide);
         }
         final var thereTile = world.getTileEntity(dX, dY, dZ);
         if (thereTile instanceof IEssentiaTransport transport) {
             return transport.isConnectable(neighborSide);
         }
         return false;
-    }
-
-    /**
-     * Get adjacent pipe segments that can connect to the pipe at x, y, z.
-     *
-     * @param world The world to check.
-     * @return A list of connected segments (empty if none), or null if the block at x, y, z was not a pipe.
-     */
-    public static List<WorldCoordinate> getConnectedNeighbors(World world, int x, int y, int z) {
-        final var pipe = getPipeSegment(world, x, y, z);
-        if (pipe == null) {
-            return Collections.emptyList();
-        }
-        final var result = new ArrayList<WorldCoordinate>();
-        for (var dir : ForgeDirection.VALID_DIRECTIONS) {
-            final int nX = x + dir.offsetX, nY = y + dir.offsetY, nZ = z + dir.offsetZ;
-            final var canConnect = canConnect(world, x, y, z, dir);
-            if (canConnect) {
-                result.add(new WorldCoordinate(world.provider.dimensionId, nX, nY, nZ));
-            }
-        }
-        return result;
-    }
-
-    public static IPipeSegment getPipeSegment(IBlockAccess world, int x, int y, int z) {
-        final var block = world.getBlock(x, y, z);
-        if (block instanceof IPipeSegment blockSegment) {
-            return blockSegment;
-        }
-        final var tileEntity = world.getTileEntity(x, y, z);
-        return tileEntity instanceof IPipeSegment tileSegment ? tileSegment : null;
-    }
-
-    public static PipeColor getPipeColor(World world, int x, int y, int z) {
-        final var pipe = getPipeSegment(world, x, y, z);
-        return pipe == null ? null : pipe.getPipeColor(world, x, y, z);
-    }
-
-    public static IIOPipeSegment getIOSegment(WorldCoordinate coordinate) {
-        final var world = coordinate.getWorld();
-        if (world == null) {
-            return null;
-        }
-        return getIOSegment(coordinate.getWorld(), coordinate.x(), coordinate.y(), coordinate.z());
-    }
-
-    public static IIOPipeSegment getIOSegment(World world, int x, int y, int z) {
-        final var block = world.getBlock(x, y, z);
-        if (block instanceof IIOPipeSegment ioSegment) {
-            return ioSegment;
-        }
-        final var tileEntity = world.getTileEntity(x, y, z);
-        return tileEntity instanceof IIOPipeSegment tileIOSegment ? tileIOSegment : null;
     }
 
     /**
@@ -116,11 +84,10 @@ public class PipeHelper {
      * @param z     The z of the segment that was added or changed.
      */
     public static void notifySegmentAddedOrChanged(World world, int x, int y, int z) {
-        final var toUpdate = findIOSegmentsInNetwork(
-            world,
+        final var toUpdate = findIOPipeSegments(
             SearchType.DepthFirst,
             new WorldCoordinate(world.provider.dimensionId, x, y, z));
-        updateIOSegments(world, toUpdate);
+        updateIOSegments(toUpdate);
     }
 
     /**
@@ -132,16 +99,15 @@ public class PipeHelper {
      * @param z     The z of the segment that was removed.
      */
     public static void notifySegmentRemoved(World world, int x, int y, int z) {
-        final var toUpdate = findIOSegmentsInNetwork(
-            world,
+        final var found = findIOPipeSegments(
             SearchType.DepthFirst,
             WorldCoordinate.adjacent(world.provider.dimensionId, x, y, z));
-        updateIOSegments(world, toUpdate);
+        updateIOSegments(found);
     }
 
-    private static void updateIOSegments(World world, Collection<IOSegmentResult> toUpdate) {
+    private static void updateIOSegments(Collection<ConnectionInfo> toUpdate) {
         for (var result : toUpdate) {
-            final var ioSegment = getIOSegment(world, result.x, result.y, result.z);
+            final var ioSegment = result.getIOSegment();
             if (ioSegment == null) {
                 continue;
             }
@@ -149,65 +115,74 @@ public class PipeHelper {
         }
     }
 
-    public static List<IOSegmentResult> findIOSegmentsInNetwork(World world, SearchType searchType,
+    /**
+     * From the provided initial position(s), walk along connected pipe segments and return any IO segments found.
+     *
+     * @param searchType       Which search algorithm to use
+     * @param initialPositions The initial value(s) used to populate the navigation stack (depth-first) or queue
+     *                         (breadth-first).
+     * @return All IO segments found while walking the pipe network.
+     */
+    public static Collection<ConnectionInfo> findIOPipeSegments(SearchType searchType,
         WorldCoordinate... initialPositions) {
+        final var resultMap = new HashMap<WorldCoordinate, Integer>();
 
-        final var queue = Arrays.stream(initialPositions)
-            .map(p -> new IOSegmentResult(p.x(), p.y(), p.z(), 0))
-            .collect(Collectors.toCollection(ArrayDeque::new));
-        final var visited = new HashSet<WorldCoordinate>();
-
-        final var foundAndDistance = new HashMap<WorldCoordinate, Integer>();
-
-        while (!queue.isEmpty()) {
-            final var at = switch (searchType) {
-                case BreadthFirst -> queue.pollFirst();
-                case DepthFirst -> queue.pollLast();
-            };
-
-            final int x = at.x(), y = at.y(), z = at.z(), distance = at.distance();
-            final var pos = new WorldCoordinate(world.provider.dimensionId, x, y, z);
-            visited.add(pos);
-
-            final var ioSegment = getIOSegment(world, x, y, z);
-            if (ioSegment != null && (!foundAndDistance.containsKey(pos) || foundAndDistance.get(pos) > distance)) {
-                foundAndDistance.put(pos, distance);
+        for (var p : initialPositions) {
+            final var world = p.getWorld();
+            if (world == null) {
+                continue;
             }
+            final var queue = new ArrayDeque<NavigationEntry>();
+            final var visited = new HashSet<WorldCoordinate>();
+            queue.add(new NavigationEntry(p, 0));
 
-            for (var adj : getConnectedNeighbors(world, x, y, z)) {
-                if (!visited.contains(adj)) {
-                    queue.push(new IOSegmentResult(adj.x(), adj.y(), adj.z(), distance + 1));
+            while (!queue.isEmpty()) {
+                final var current = switch (searchType) {
+                    case BreadthFirst -> queue.pollFirst();
+                    case DepthFirst -> queue.pollLast();
+                };
+
+                final var here = current.coordinate;
+                final var distance = current.distance;
+
+                visited.add(here);
+
+                final var ioSegment = here.getTileEntity(IIOPipeSegment.class);
+                if (ioSegment != null && (!resultMap.containsKey(here) || resultMap.get(here) > distance)) {
+                    resultMap.put(here, distance);
+                }
+
+                for (var dir : ForgeDirection.VALID_DIRECTIONS) {
+                    final var there = here.shift(dir);
+                    if (!visited.contains(here.shift(dir)) && canConnect(here, dir)) {
+                        queue.push(new NavigationEntry(there, distance + 1));
+                    }
                 }
             }
-
         }
 
-        return foundAndDistance.entrySet()
-            .stream()
-            .map(kv -> {
-                final var coord = kv.getKey();
-                final int distance = kv.getValue();
-                return new IOSegmentResult(coord.x(), coord.y(), coord.z(), distance);
-            })
-            .collect(Collectors.toList());
+        final var result = new ArrayList<ConnectionInfo>(resultMap.size());
+        for (var entry : resultMap.entrySet()) {
+            result.add(new ConnectionInfo(entry.getKey(), entry.getValue()));
+        }
+        return result;
     }
 
+    /**
+     * Determines the behavior of findIOPipeSegments
+     */
     public enum SearchType {
+        /**
+         * Queue-based. Uses more memory, but guarenteed to find the shortest distances between the inital positions and
+         * any IO pipe segments.
+         */
         BreadthFirst,
+        /**
+         * Stack-based. Not guarenteed to find the shortest distances, but uses less memory.
+         */
         DepthFirst,
     }
 
     @Desugar
-    public record IOSegmentResult(int x, int y, int z, int distance) implements Comparable<IOSegmentResult> {
-
-        @Override
-        public String toString() {
-            return "ConnectorResult{" + "x=" + x + ", y=" + y + ", z=" + z + ", distance=" + distance + '}';
-        }
-
-        @Override
-        public int compareTo(IOSegmentResult o) {
-            return Integer.compare(distance, o.distance);
-        }
-    }
+    private record NavigationEntry(WorldCoordinate coordinate, int distance) {}
 }

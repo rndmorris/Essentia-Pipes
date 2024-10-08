@@ -6,7 +6,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
-import dev.rndmorris.pressurizedessentia.api.ConnectionInfo;
 import dev.rndmorris.pressurizedessentia.api.EssentiaRequest;
 import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
@@ -344,15 +343,16 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public void rebuildIOConnections() {
-        this.connections.clear();
-        PipeHelper.findIOSegmentsInNetwork(worldObj, PipeHelper.SearchType.BreadthFirst, getCoordinate())
-            .stream()
-            .filter(io -> !(io.x() == xCoord && io.y() == yCoord && io.z() == zCoord))
-            .map(
-                io -> new ConnectionInfo(
-                    new WorldCoordinate(worldObj.provider.dimensionId, io.x(), io.y(), io.z()),
-                    io.distance()))
-            .forEach(connections::add);
+        final var here = getCoordinate();
+        final var foundConnections = PipeHelper.findIOPipeSegments(PipeHelper.SearchType.BreadthFirst, here);
+
+        connections.clear();
+        for (var ci : foundConnections) {
+            if (here.equals(ci.coordinate())) {
+                continue;
+            }
+            connections.add(ci);
+        }
         markDirty(true);
     }
 }

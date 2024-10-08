@@ -63,7 +63,7 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
             zAxisMaxZ = R_INSET;
 
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
-            if (!PipeHelper.shouldVisuallyConnect(world, x, y, z, dir)) {
+            if (!PipeHelper.canConnectVisually(world, x, y, z, dir)) {
                 continue;
             }
             final var adjacentTile = world.getTileEntity(x + dir.offsetX, y + dir.offsetY, z + dir.offsetZ);

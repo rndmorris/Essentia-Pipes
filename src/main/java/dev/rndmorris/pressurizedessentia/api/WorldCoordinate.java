@@ -1,7 +1,11 @@
 package dev.rndmorris.pressurizedessentia.api;
 
+import java.util.Comparator;
+
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
@@ -10,7 +14,8 @@ import net.minecraftforge.common.util.ForgeDirection;
 import com.github.bsideup.jabel.Desugar;
 
 @Desugar
-public record WorldCoordinate(int dimensionId, int x, int y, int z) {
+public record WorldCoordinate(int dimensionId, int x, int y, int z)
+    implements Comparable<WorldCoordinate>, Comparator<WorldCoordinate> {
 
     public static WorldCoordinate[] adjacent(int dimensionId, int x, int y, int z) {
         final var result = new WorldCoordinate[ForgeDirection.VALID_DIRECTIONS.length];
@@ -20,18 +25,6 @@ public record WorldCoordinate(int dimensionId, int x, int y, int z) {
         }
 
         return result;
-    }
-
-    public static WorldCoordinate shift(int dimensionId, int x, int y, int z, ForgeDirection direction) {
-        return new WorldCoordinate(dimensionId, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ);
-    }
-
-    public WorldCoordinate[] adjacent() {
-        return adjacent(dimensionId, x, y, z);
-    }
-
-    public WorldCoordinate shift(ForgeDirection direction) {
-        return shift(dimensionId, x, y, z, direction);
     }
 
     public static WorldCoordinate fromTileEntity(@Nullable Object object) {
@@ -45,11 +38,29 @@ public record WorldCoordinate(int dimensionId, int x, int y, int z) {
             tileEntity.zCoord);
     }
 
-    public World getWorld() {
-        if (DimensionManager.isDimensionRegistered(dimensionId)) {
-            return DimensionManager.getWorld(dimensionId);
+    public Block getBlock() {
+        final var world = getWorld();
+        if (world == null) {
+            return null;
+        }
+        return world.getBlock(x, y, z);
+    }
+
+    public <T> T getBlock(Class<T> clazz) {
+        final var block = getBlock();
+        if (block != null && clazz.isAssignableFrom(block.getClass())) {
+            // noinspection unchecked
+            return (T) block;
         }
         return null;
+    }
+
+    public int getBlockMetadata() {
+        final var world = getWorld();
+        if (world == null) {
+            return -1;
+        }
+        return world.getBlockMetadata(x, y, z);
     }
 
     public TileEntity getTileEntity() {
@@ -67,5 +78,48 @@ public record WorldCoordinate(int dimensionId, int x, int y, int z) {
             return (T) entity;
         }
         return null;
+    }
+
+    public World getWorld() {
+        if (DimensionManager.isDimensionRegistered(dimensionId)) {
+            return DimensionManager.getWorld(dimensionId);
+        }
+        return null;
+    }
+
+    public static WorldCoordinate shift(int dimensionId, int x, int y, int z, ForgeDirection direction) {
+        return new WorldCoordinate(dimensionId, x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ);
+    }
+
+    public WorldCoordinate shift(ForgeDirection direction) {
+        return shift(dimensionId, x, y, z, direction);
+    }
+
+    // Comparable
+
+    @Override
+    public int compareTo(@Nonnull WorldCoordinate that) {
+        return compare(this, that);
+    }
+
+    // Comparator
+
+    public int compare(@Nonnull WorldCoordinate thiz, @Nonnull WorldCoordinate that) {
+        var compare = Integer.compare(thiz.x, that.x);
+        if (compare != 0) {
+            return compare;
+        }
+
+        compare = Integer.compare(thiz.y, that.y);
+        if (compare != 0) {
+            return compare;
+        }
+
+        compare = Integer.compare(thiz.z, that.z);
+        if (compare != 0) {
+            return compare;
+        }
+
+        return Integer.compare(thiz.dimensionId, that.dimensionId);
     }
 }

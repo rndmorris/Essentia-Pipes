@@ -28,6 +28,7 @@ import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeColor;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
+import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
 import dev.rndmorris.pressurizedessentia.client.BlockPipeSegmentRenderer;
 import dev.rndmorris.pressurizedessentia.items.ItemBlockPipeSegment;
 import dev.rndmorris.pressurizedessentia.tile.TileEntityIOPipeSegment;
@@ -123,8 +124,9 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
             minY = BlockPipeSegmentRenderer.INSET_VALVE, maxY = BlockPipeSegmentRenderer.R_INSET_VALVE,
             minZ = BlockPipeSegmentRenderer.INSET_VALVE, maxZ = BlockPipeSegmentRenderer.R_INSET_VALVE;
         if (world != null) {
+            final var here = new WorldCoordinate(world.provider.dimensionId, x, y, z);
             for (var dir : ForgeDirection.VALID_DIRECTIONS) {
-                if (!PipeHelper.canConnect(world, x, y, z, dir)) {
+                if (!PipeHelper.canConnect(here, dir)) {
                     continue;
                 }
                 switch (dir) {
@@ -213,7 +215,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
         float min = 0.42F;
         float max = 0.58F;
-        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.DOWN)) {
+        if (PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.DOWN)) {
             cuboids.add(
                 new IndexedCuboid6(
                     0,
@@ -226,7 +228,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
                         ((float) z + max))));
         }
 
-        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.UP)) {
+        if (PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.UP)) {
             cuboids.add(
                 new IndexedCuboid6(
                     1,
@@ -239,7 +241,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
                         ((float) z + max))));
         }
 
-        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.NORTH)) {
+        if (PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.NORTH)) {
             cuboids.add(
                 new IndexedCuboid6(
                     2,
@@ -252,7 +254,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
                         (double) z + 0.5D)));
         }
 
-        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.SOUTH)) {
+        if (PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.SOUTH)) {
             cuboids.add(
                 new IndexedCuboid6(
                     3,
@@ -265,7 +267,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
                         (z + 1))));
         }
 
-        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.WEST)) {
+        if (PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.WEST)) {
             cuboids.add(
                 new IndexedCuboid6(
                     4,
@@ -278,7 +280,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
                         ((float) z + max))));
         }
 
-        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.EAST)) {
+        if (PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.EAST)) {
             cuboids.add(
                 new IndexedCuboid6(
                     5,
@@ -334,12 +336,29 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     ///
 
     @Override
+    public boolean canConnectTo(WorldCoordinate position, ForgeDirection face) {
+        final var there = position.shift(face);
+        final var neighbor = there.getBlock(IPipeSegment.class);
+
+        return this == neighbor && this.getPipeColor(position)
+            .willConnectTo(neighbor.getPipeColor(there));
+    }
+
+    @Override
     public boolean canConnectTo(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
         final int dX = x + face.offsetX, dY = y + face.offsetY, dZ = z + face.offsetZ;
         final var adjacentBlock = world.getBlock(dX, dY, dZ);
 
         return this == adjacentBlock && this.getPipeColor(world, x, y, z)
             .willConnectTo(this.getPipeColor(world, dX, dY, dZ));
+    }
+
+    public PipeColor getPipeColor(WorldCoordinate position) {
+        final var metadata = position.getBlockMetadata();
+        if (metadata >= 0) {
+            return pipeColorFromMetadata(metadata);
+        }
+        return null;
     }
 
     public PipeColor getPipeColor(IBlockAccess world, int x, int y, int z) {

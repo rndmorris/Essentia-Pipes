@@ -7,7 +7,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import dev.rndmorris.pressurizedessentia.api.PipeHelper;
+import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
+import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
 import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
 
 public class ItemBlockPipeSegment extends ItemBlock {
@@ -33,14 +34,18 @@ public class ItemBlockPipeSegment extends ItemBlock {
     public boolean placeBlockAt(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ, int metadata) {
 
-        final var on = ForgeDirection.getOrientation(side)
-            .getOpposite();
-        final int nX = x + on.offsetX, nY = y + on.offsetY, nZ = z + on.offsetZ;
+        final var here = new WorldCoordinate(world.provider.dimensionId, x, y, z);
+        final var there = here.shift(
+            ForgeDirection.getOrientation(side)
+                .getOpposite());
 
         if (player.isSneaking()) {
-            final var copyColor = PipeHelper.getPipeColor(world, nX, nY, nZ);
-            if (copyColor != null) {
-                return super.placeBlockAt(stack, player, world, x, y, z, side, hitX, hitY, hitZ, copyColor.id);
+            final var therePipe = there.getBlock(IPipeSegment.class);
+            if (therePipe != null) {
+                final var copyColor = therePipe.getPipeColor(there);
+                if (copyColor != null) {
+                    return super.placeBlockAt(stack, player, world, x, y, z, side, hitX, hitY, hitZ, copyColor.id);
+                }
             }
         }
 
