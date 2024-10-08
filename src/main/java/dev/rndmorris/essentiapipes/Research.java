@@ -32,42 +32,60 @@ public class Research {
         basicPipes = new ResearchItem(
             PIPES_BASIC,
             CATEGORY,
-            new AspectList().add(Aspect.METAL, 3).add(Aspect.MOTION, 3).add(Aspect.VOID, 3),
+            new AspectList().add(Aspect.METAL, 5)
+                .add(Aspect.MOTION, 3)
+                .add(Aspect.VOID, 1),
             0,
-            2,
+            -2,
             1,
             new ItemStack(Item.getItemFromBlock(BlockPipeSegment.pipe_segment)))
-            .setPages(
-                new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.1"),
-                new ResearchPage(Recipes.basicPipeRecipe),
-                new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.2"),
-                new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.3"),
-                new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.4"),
-                new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.5"),
-                new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.6"),
-                new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.7"))
-            .setParentsHidden("THAUMATORIUM")
-            .registerResearchItem();
+                .setPages(
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.1"),
+                    new ResearchPage(Recipes.basicPipeRecipe),
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.2"),
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.3"),
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.4"),
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.5"),
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.6"),
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.7"))
+                .setParentsHidden("THAUMATORIUM")
+                .setAutoUnlock()
+                .registerResearchItem();
 
         thaumiumPipes = new ResearchItem(
             PIPES_THAUMIUM,
             CATEGORY,
-            new AspectList().add(Aspect.METAL, 5).add(Aspect.MAGIC, 5).add(Aspect.ARMOR, 3).add(Aspect.VOID, 3),
+            new AspectList().add(Aspect.METAL, 7)
+                .add(Aspect.MAGIC, 5)
+                .add(Aspect.VOID, 3),
             0,
             0,
-            1,
-            new ItemStack(Item.getItemFromBlock(BlockPipeSegment.pipe_segment_thaumium))).registerResearchItem()
-            .setParents(PIPES_BASIC, "ARMORFORTRESS");
+            2,
+            new ItemStack(Item.getItemFromBlock(BlockPipeSegment.pipe_segment_thaumium)))
+                .setPages(
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_THAUMIUM.1"),
+                    new ResearchPage(Recipes.thaumiumPipeRecipe))
+                .setParents(PIPES_BASIC, "ARMORFORTRESS")
+                .setAutoUnlock()
+                .registerResearchItem();
 
         voidmetalPipes = new ResearchItem(
             PIPES_VOIDMETAL,
             CATEGORY,
-            new AspectList(),
+            new AspectList().add(Aspect.METAL, 9)
+                .add(Aspect.ELDRITCH, 7)
+                .add(Aspect.VOID, 5),
             0,
-            -2,
-            1,
-            new ItemStack(Item.getItemFromBlock(BlockPipeSegment.pipe_segment_voidmetal))).registerResearchItem()
-                .setParents(PIPES_THAUMIUM, "ESSENTIARESERVOIR");
+            2,
+            3,
+            new ItemStack(Item.getItemFromBlock(BlockPipeSegment.pipe_segment_voidmetal)))
+                .setPages(
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_VOIDMETAL.1"),
+                    new ResearchPage(Recipes.voidmetalPipeRecipe),
+                    new ResearchPage("tc.research_page.essentiapipes:PIPES_VOIDMETAL.2"))
+                .setAutoUnlock()
+                .setParents(PIPES_THAUMIUM, "ESSENTIARESERVOIR", "HUNGRYCHEST")
+                .registerResearchItem();
     }
 
 }

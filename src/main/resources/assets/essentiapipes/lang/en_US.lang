@@ -18,6 +18,9 @@ tc.research_page.essentiapipes:PIPES_BASIC.7=§lFinally§r, to preserve internal
 
 tc.research_name.essentiapipes:PIPES_THAUMIUM=Thaumium-Reinforced Essentia Pipes
 tc.research_text.essentiapipes:PIPES_THAUMIUM=Now we're talking
+tc.research_page.essentiapipes:PIPES_THAUMIUM.1=After learning how to use an infusion matrix to reinforce armor with thaumium, I have deviced a similar recipe to reinforce my essentia pipes.<BR>The reinforcements allow for even an even greater internal vacuum and allows essentia to flow through it in greater quantities, but that vacuum takes longer to replenish after a connection in or out of the pipe opens. Because the pressure inside a thaumium-reinforced pipe is greater than a normal pipe, they will not connect to each other.
 
 tc.research_name.essentiapipes:PIPES_VOIDMETAL=Voidmetal-Reinforced Essentia Pipes
-tc.research_text.essentiapipes:PIPES_VOIDMETAL=Large transport for large storage
+tc.research_text.essentiapipes:PIPES_VOIDMETAL=Leave no empty space unfilled
+tc.research_page.essentiapipes:PIPES_VOIDMETAL.1=Another magical metal, another way to reinforce essentia pipes even further. As with thaumium-reinforced pipes compared to the pipes before them, voidmetal-reinforced pipes can maintain an astonishingly great internal vacuum. Although they operate more slowly than even thaumium-reinforced pipes, they can move §leven more§r essentia at once.
+tc.research_page.essentiapipes:PIPES_VOIDMETAL.2=<LINE>Lately I've been having nightmares. In them, I'm working my laboratory working with essentia. I stop to marvel at my great and miraculous works. But I stand too close to one of these voidmetal pipes. I try to scream for help as I'm pulled into its abyssal maw, but the pipe is sucking the air from my very lungs. If I'm lucky, I wake up before experiencing what it's like to have ones flesh reshaped into the image of a wet noodle and slurped into an endless void.<BR>I'm not always lucky.
