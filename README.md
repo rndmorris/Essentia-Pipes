@@ -13,9 +13,13 @@ those blocks are outputting.
 
 ## Features
 * Three different flavors of **Essentia Pipes**: basic, thaumium, and voidmetal.
-* Each comes in default grey, and with seven additional color variants!
+* Each comes in default grey, but with seven additional color variants! Each color will connect only to itself or grey.
 * Configurable transfer rates for each type of **Essentia Pipe**.
 
 ![Three horizontal lines of essentia pipes are featured, each three blocks long. The topmost line is a plain grey. The middlemost is also grey, with a thaumium purple frame. The bottommost line is again grey, but with a voidmetal dark purple frame.](./.github/images/pipe_flavors.png)
 
 ![An array of essentia pipes, seven blocks long and three blocks high, are displayed. The bottommost line of essentia pipes are grey. The remaining pipes are different colors, arranged from left to right: yellow, red, blue, green, white, black, and purple. The colored pipes only connect to pipes of the same color and the grey pipes.](./.github/images/pipe_colors.png)
+
+# Dependencies
+* [Thaumcraft 4](https://www.curseforge.com/minecraft/mc-mods/thaumcraft/files/2227552) (required)
+
