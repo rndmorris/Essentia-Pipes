@@ -23,13 +23,15 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     public static final String CONNECTIONS = "connections";
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
-    public static final byte INTERVAL = 20;
+    public static final byte CYCLE_LENGTH = 20;
     public static final String REQUESTS = "requests";
     public static final byte TRANSFER_RATE = 4;
 
     public final ConnectionSet connections = new ConnectionSet();
     public final EssentiaRequestSet incomingRequests = new EssentiaRequestSet();
 
+    private int rescanTickOffset = -1;
+    private int requestTickOffset = -1;
     private WorldCoordinate coordinate;
 
     public TileEntityIOPipeSegment() {
@@ -160,10 +162,27 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public void updateEntity() {
-        final var step = (byte) (worldObj.getTotalWorldTime() % INTERVAL);
-        switch (step) {
-            case 0 -> sendEssentiaRequests();
-            case 1 -> distributeEssentia();
+        if (rescanTickOffset < 0) {
+            rescanTickOffset = worldObj.rand.nextInt(10);
+        }
+        if (requestTickOffset < 0) {
+            requestTickOffset = worldObj.rand.nextInt(5);
+        }
+        final var step = (byte) (worldObj.getTotalWorldTime() % CYCLE_LENGTH);
+
+        // rescan valid connections (because sometimes things seem to break)
+        if (step < 10 && step % 10 == rescanTickOffset) {
+            rebuildIOConnections();
+            return;
+        }
+        // send requests (spread out across multiple ticks so they aren't all in syn
+        if (step < 15 && step % 5 == requestTickOffset) {
+            sendEssentiaRequests();
+            return;
+        }
+        if (step % 5 == requestTickOffset) {
+            distributeEssentia();
+            return;
         }
     }
 
