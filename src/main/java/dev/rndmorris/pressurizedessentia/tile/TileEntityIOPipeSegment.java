@@ -127,10 +127,12 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
                 // return any leftovers
                 source.addEssentia(takeAspect, leftovers, takeFromFace);
             }
+            incomingRequests.setRequest(dir, null);
             markDirty(true);
         }
 
         incomingRequests.clear();
+        markDirty(true);
     }
 
     private Aspect pickAspectToTake(IEssentiaTransport source, ForgeDirection takeFromFace) {
