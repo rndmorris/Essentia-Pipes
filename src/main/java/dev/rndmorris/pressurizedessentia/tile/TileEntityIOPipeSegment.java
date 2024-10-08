@@ -119,7 +119,8 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
             // Some containers (e.g. jars) don't like giving essentia when aspect is null
             final var takeAspect = request.aspect != null ? request.aspect : pickAspectToTake(source, takeFromFace);
-            final var amountTaken = source.takeEssentia(takeAspect, TRANSFER_RATE, takeFromFace);
+            final var takeAmount = calculateAmountToTake(source, takeFromFace, takeAspect);
+            final var amountTaken = source.takeEssentia(takeAspect, takeAmount, takeFromFace);
             final var amountAdded = destination.addEssentia(takeAspect, amountTaken, request.destinationFace);
 
             final var leftovers = amountTaken - amountAdded;
@@ -146,6 +147,15 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
             return containedAspects[worldObj.rand.nextInt(containedAspects.length)];
         }
         return null;
+    }
+
+    private int calculateAmountToTake(IEssentiaTransport source, ForgeDirection takeFromFace, Aspect aspect) {
+        if (source instanceof IAspectContainer container) {
+            final var containedAmount = container.getAspects().getAmount(aspect);
+            return Integer.min(TRANSFER_RATE, containedAmount);
+        }
+        final var contained = source.getEssentiaAmount(takeFromFace);
+        return Integer.min(TRANSFER_RATE, contained);
     }
 
     private IEssentiaTransport getEssentiaTransport(ForgeDirection dir) {
