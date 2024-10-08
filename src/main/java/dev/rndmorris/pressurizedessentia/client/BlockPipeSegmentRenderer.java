@@ -31,7 +31,7 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
     @Override
     public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
         final var icon = block.getIcon(0, metadata);
-        block.setBlockBounds(INSET, INSET, INSET, R_INSET, R_INSET, R_INSET);
+        block.setBlockBounds(INSET, INSET, 0, R_INSET, R_INSET, 1);
         renderer.setRenderBoundsFromBlock(block);
         BlockRenderer.drawFaces(renderer, block, icon, false);
     }
