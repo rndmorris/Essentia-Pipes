@@ -113,7 +113,8 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
                 continue;
             }
 
-            if (destination.getSuctionAmount(request.destinationFace) <= 0 || destination.getSuctionType(request.destinationFace) != request.aspect) {
+            if (destination.getSuctionAmount(request.destinationFace) <= 0
+                || destination.getSuctionType(request.destinationFace) != request.aspect) {
                 continue;
             }
 
