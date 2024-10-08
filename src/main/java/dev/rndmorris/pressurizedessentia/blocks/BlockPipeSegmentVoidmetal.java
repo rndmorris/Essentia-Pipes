@@ -5,7 +5,7 @@ import dev.rndmorris.pressurizedessentia.Config;
 public class BlockPipeSegmentVoidmetal extends BlockPipeSegment {
 
     protected BlockPipeSegmentVoidmetal() {
-        super(Config.transferRateVoidmetal);
+        super(Config.cycleLengthVoidmetal, Config.transferRateVoidmetal);
     }
 
     @Override

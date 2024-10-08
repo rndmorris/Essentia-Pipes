@@ -53,7 +53,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     public static void preInit() {
         if (Config.pipeEnabledBasic) {
-            pipe_segment = register(new BlockPipeSegment(Config.transferRateBasic), ID);
+            pipe_segment = register(new BlockPipeSegment(Config.cycleLengthBasic, Config.transferRateBasic), ID);
         }
         if (Config.pipeEnabledThaumium) {
             pipe_segment_thaumium = register(new BlockPipeSegmentThaumium(), ID_THAUMIUM);
@@ -129,10 +129,12 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     public final IIcon[] valveIcon = new IIcon[1];
     private final RayTracer rayTracer = new RayTracer();
+    protected final int cycleLength;
     protected final int transferRate;
 
-    protected BlockPipeSegment(int transferRate) {
+    protected BlockPipeSegment(int cycleLength, int transferRate) {
         super(Material.iron);
+        this.cycleLength = cycleLength;
         this.transferRate = transferRate;
         setHardness(0.5F);
         setResistance(10F);
@@ -189,7 +191,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public TileEntity createTileEntity(World world, int metadata) {
-        return isIOSegment(metadata) ? new TileEntityIOPipeSegment(transferRate) : null;
+        return isIOSegment(metadata) ? new TileEntityIOPipeSegment(cycleLength, transferRate) : null;
     }
 
     @Override

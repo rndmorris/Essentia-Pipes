@@ -5,7 +5,7 @@ import dev.rndmorris.pressurizedessentia.Config;
 public class BlockPipeSegmentThaumium extends BlockPipeSegment {
 
     protected BlockPipeSegmentThaumium() {
-        super(Config.transferRateThaumium);
+        super(Config.cycleLengthThaumium, Config.transferRateThaumium);
     }
 
     @Override

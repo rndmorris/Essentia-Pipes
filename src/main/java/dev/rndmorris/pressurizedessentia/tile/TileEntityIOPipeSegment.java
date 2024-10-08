@@ -22,7 +22,6 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     public static final String CONNECTIONS = "connections";
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
-    public static final byte CYCLE_LENGTH = 20;
     public static final String REQUESTS = "requests";
 
     public final ConnectionSet connections = new ConnectionSet();
@@ -31,10 +30,16 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     private int rescanTickOffset = -1;
     private int requestTickOffset = -1;
     private WorldCoordinate coordinate;
+    private final int cycleLength;
+    private final int halfCycle;
+    private final int quarterCycle;
     private final int transferRate;
 
-    public TileEntityIOPipeSegment(int transferRate) {
+    public TileEntityIOPipeSegment(int cycleLength, int transferRate) {
         super();
+        this.cycleLength = cycleLength;
+        this.halfCycle = cycleLength / 2;
+        this.quarterCycle = cycleLength / 4;
         this.transferRate = transferRate;
     }
 
@@ -177,24 +182,24 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     @Override
     public void updateEntity() {
         if (rescanTickOffset < 0) {
-            rescanTickOffset = worldObj.rand.nextInt(10);
+            rescanTickOffset = worldObj.rand.nextInt(halfCycle);
         }
         if (requestTickOffset < 0) {
-            requestTickOffset = worldObj.rand.nextInt(5);
+            requestTickOffset = worldObj.rand.nextInt(quarterCycle);
         }
-        final var step = (byte) (worldObj.getTotalWorldTime() % CYCLE_LENGTH);
+        final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
 
         // rescan valid connections (because sometimes things seem to break)
-        if (step < 10 && step % 10 == rescanTickOffset) {
+        if (step < halfCycle && step % halfCycle == rescanTickOffset) {
             rebuildIOConnections();
             return;
         }
-        // send requests (spread out across multiple ticks so they aren't all in syn
-        if (step < 15 && step % 5 == requestTickOffset) {
+        // send requests (spread out across multiple ticks)
+        if (step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset) {
             sendEssentiaRequests();
             return;
         }
-        if (step % 5 == requestTickOffset) {
+        if (step % quarterCycle == requestTickOffset) {
             distributeEssentia();
             return;
         }
