@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
+import dev.rndmorris.pressurizedessentia.EssentiaPipes;
 import dev.rndmorris.pressurizedessentia.api.EssentiaRequest;
 import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
@@ -21,7 +21,7 @@ import thaumcraft.api.aspects.IEssentiaTransport;
 public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSegment {
 
     public static final String CONNECTIONS = "connections";
-    public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
+    public static final String ID = EssentiaPipes.modid("IOPipeSegment");
     public static final String REQUESTS = "requests";
 
     public final ConnectionSet connections = new ConnectionSet();

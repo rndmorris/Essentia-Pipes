@@ -9,13 +9,14 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(
-    modid = PressurizedEssentia.MODID,
+    modid = EssentiaPipes.MODID,
     version = Tags.VERSION,
-    name = "PressurizedEssentia",
-    acceptedMinecraftVersions = "[1.7.10]")
-public class PressurizedEssentia {
+    name = "Essentia Pipes",
+    acceptedMinecraftVersions = "[1.7.10]",
+    dependencies = "after:Thaumcraft")
+public class EssentiaPipes {
 
-    public static final String MODID = "pressurizedessentia";
+    public static final String MODID = "essentiapipes";
     @SuppressWarnings("unused")
     public static final Logger LOG = LogManager.getLogger(MODID);
 

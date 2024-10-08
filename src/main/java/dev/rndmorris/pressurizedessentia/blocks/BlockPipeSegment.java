@@ -24,7 +24,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import dev.rndmorris.pressurizedessentia.Config;
-import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
+import dev.rndmorris.pressurizedessentia.EssentiaPipes;
 import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeColor;
@@ -66,8 +66,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     private static BlockPipeSegment register(BlockPipeSegment instance, String id) {
-        instance.setBlockName(PressurizedEssentia.modid(id));
-        instance.setCreativeTab(PressurizedEssentia.proxy.getCreativeTab());
+        instance.setBlockName(EssentiaPipes.modid(id));
+        instance.setCreativeTab(EssentiaPipes.proxy.getCreativeTab());
 
         GameRegistry.registerBlock(instance, ItemBlockPipeSegment.class, id);
         return instance;
@@ -343,7 +343,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
         for (var index = 0; index < icons.length; ++index) {
-            final var path = String.format("%s:%s_%01d", PressurizedEssentia.MODID, getId(), index);
+            final var path = String.format("%s:%s_%01d", EssentiaPipes.MODID, getId(), index);
             icons[index] = reg.registerIcon(path);
         }
         valveIcon[0] = reg.registerIcon("thaumcraft:pipe_2");

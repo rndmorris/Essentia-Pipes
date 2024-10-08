@@ -1,5 +1,5 @@
 tile.pressurizedessentia:pipe_segment.name=Pressurized Pipe
-tile.pressurizedessentia:pipe_segment_thaumium.name=Thaumium-Reinforced Pipe
-tile.pressurizedessentia:pipe_segment_voidmetal.name=Voidmetal-Reinforced Pipe
+tile.pressurizedessentia:pipe_segment_thaumium.name=Thaumium-Reinforced Pressurized Pipe
+tile.pressurizedessentia:pipe_segment_voidmetal.name=Voidmetal-Reinforced Pressurized Pipe
 
 itemGroup.pressurizedessentia=Pressurized Essentia Pipes
