@@ -9,7 +9,6 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
-import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
 
 public class ItemBlockPipeSegment extends ItemBlock {
 
@@ -22,12 +21,6 @@ public class ItemBlockPipeSegment extends ItemBlock {
     @Override
     public int getMetadata(int metadata) {
         return metadata;
-    }
-
-    @Override
-    public String getUnlocalizedName(ItemStack stack) {
-        final var color = BlockPipeSegment.pipeColorFromMetadata(stack.getItemDamage());
-        return super.getUnlocalizedName() + "." + color.id;
     }
 
     @Override
