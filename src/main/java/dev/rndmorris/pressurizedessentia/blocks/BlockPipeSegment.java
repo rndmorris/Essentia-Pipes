@@ -23,6 +23,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import dev.rndmorris.pressurizedessentia.Config;
 import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
 import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
@@ -51,9 +52,15 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     public static BlockPipeSegment pipe_segment_voidmetal;
 
     public static void preInit() {
-        pipe_segment = register(new BlockPipeSegment(4), ID);
-        pipe_segment_thaumium = register(new BlockPipeSegmentThaumium(), ID_THAUMIUM);
-        pipe_segment_voidmetal = register(new BlockPipeSegmentVoidmetal(), ID_VOIDMETAL);
+        if (Config.pipeEnabledBasic) {
+            pipe_segment = register(new BlockPipeSegment(Config.transferRateBasic), ID);
+        }
+        if (Config.pipeEnabledThaumium) {
+            pipe_segment_thaumium = register(new BlockPipeSegmentThaumium(), ID_THAUMIUM);
+        }
+        if (Config.pipeEnabledVoidmetal) {
+            pipe_segment_voidmetal = register(new BlockPipeSegmentVoidmetal(), ID_VOIDMETAL);
+        }
 
         GameRegistry.registerTileEntity(TileEntityIOPipeSegment.class, TileEntityIOPipeSegment.ID);
     }

@@ -1,9 +1,11 @@
 package dev.rndmorris.pressurizedessentia.blocks;
 
+import dev.rndmorris.pressurizedessentia.Config;
+
 public class BlockPipeSegmentThaumium extends BlockPipeSegment {
 
     protected BlockPipeSegmentThaumium() {
-        super(16);
+        super(Config.transferRateThaumium);
     }
 
     @Override

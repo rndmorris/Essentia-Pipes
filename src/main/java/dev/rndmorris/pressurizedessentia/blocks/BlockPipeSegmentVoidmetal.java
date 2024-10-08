@@ -1,9 +1,11 @@
 package dev.rndmorris.pressurizedessentia.blocks;
 
+import dev.rndmorris.pressurizedessentia.Config;
+
 public class BlockPipeSegmentVoidmetal extends BlockPipeSegment {
 
     protected BlockPipeSegmentVoidmetal() {
-        super(64);
+        super(Config.transferRateVoidmetal);
     }
 
     @Override
