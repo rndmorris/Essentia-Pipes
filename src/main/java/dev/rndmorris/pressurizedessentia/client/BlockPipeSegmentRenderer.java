@@ -42,6 +42,7 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
     public final static float INSET_VALVE = 6 * PIXEL;
     public final static float R_INSET_VALVE = 1F - INSET_VALVE;
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId,
         RenderBlocks renderer) {

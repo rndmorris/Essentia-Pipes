@@ -16,6 +16,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class PressurizedEssentia {
 
     public static final String MODID = "pressurizedessentia";
+    @SuppressWarnings("unused")
     public static final Logger LOG = LogManager.getLogger(MODID);
 
     public static String modid(String name) {
