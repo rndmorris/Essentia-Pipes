@@ -112,6 +112,10 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
                 continue;
             }
 
+            if (destination.getSuctionAmount(request.destinationFace) <= 0 || destination.getSuctionType(request.destinationFace) != request.aspect) {
+                continue;
+            }
+
             // Some containers (e.g. jars) don't giving essentia when aspect is null
             final var takeAspect = request.aspect != null ? request.aspect : pickAspectToTake(source, takeFromFace);
             final var amountTaken = source.takeEssentia(takeAspect, amountToTake, takeFromFace);
