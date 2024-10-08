@@ -43,16 +43,27 @@ import thaumcraft.codechicken.lib.vec.Vector3;
 public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
 
     public static final String ID = "pipe_segment";
+    public static final String ID_THAUMIUM = "pipe_segment_thaumium";
+    public static final String ID_VOIDMETAL = "pipe_segment_voidmetal";
     public static final byte IS_IO_SEGMENT = 0b1000;
     public static BlockPipeSegment pipe_segment;
+    public static BlockPipeSegment pipe_segment_thaumium;
+    public static BlockPipeSegment pipe_segment_voidmetal;
 
     public static void preInit() {
-        pipe_segment = new BlockPipeSegment();
-        pipe_segment.setBlockName(PressurizedEssentia.modid(ID))
-            .setCreativeTab(PressurizedEssentia.proxy.getCreativeTab());
+        pipe_segment = register(new BlockPipeSegment(4), ID);
+        pipe_segment_thaumium = register(new BlockPipeSegmentThaumium(), ID_THAUMIUM);
+        pipe_segment_voidmetal = register(new BlockPipeSegmentVoidmetal(), ID_VOIDMETAL);
 
-        GameRegistry.registerBlock(pipe_segment, ItemBlockPipeSegment.class, ID);
         GameRegistry.registerTileEntity(TileEntityIOPipeSegment.class, TileEntityIOPipeSegment.ID);
+    }
+
+    private static BlockPipeSegment register(BlockPipeSegment instance, String id) {
+        instance.setBlockName(PressurizedEssentia.modid(id));
+        instance.setCreativeTab(PressurizedEssentia.proxy.getCreativeTab());
+
+        GameRegistry.registerBlock(instance, ItemBlockPipeSegment.class, id);
+        return instance;
     }
 
     public static PipeColor pipeColorFromMetadata(int metadata) {
@@ -75,7 +86,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     public static boolean verifyIOState(World world, int x, int y, int z) {
         final var segment = world.getBlock(x, y, z);
 
-        if (segment != pipe_segment) {
+        if (!(segment instanceof BlockPipeSegment)) {
             return false;
         }
 
@@ -108,11 +119,14 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
+
     public final IIcon[] valveIcon = new IIcon[1];
     private final RayTracer rayTracer = new RayTracer();
+    protected final int transferRate;
 
-    protected BlockPipeSegment() {
+    protected BlockPipeSegment(int transferRate) {
         super(Material.iron);
+        this.transferRate = transferRate;
         setHardness(0.5F);
         setResistance(10F);
         setStepSound(Block.soundTypeMetal);
@@ -168,7 +182,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public TileEntity createTileEntity(World world, int metadata) {
-        return isIOSegment(metadata) ? new TileEntityIOPipeSegment() : null;
+        return isIOSegment(metadata) ? new TileEntityIOPipeSegment(transferRate) : null;
     }
 
     @Override
@@ -320,10 +334,14 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
         for (var index = 0; index < icons.length; ++index) {
-            final var path = String.format("%s:%s_%01d", PressurizedEssentia.MODID, ID, index);
+            final var path = String.format("%s:%s_%01d", PressurizedEssentia.MODID, getId(), index);
             icons[index] = reg.registerIcon(path);
         }
         valveIcon[0] = reg.registerIcon("thaumcraft:pipe_2");
+    }
+
+    protected String getId() {
+        return ID;
     }
 
     @Override

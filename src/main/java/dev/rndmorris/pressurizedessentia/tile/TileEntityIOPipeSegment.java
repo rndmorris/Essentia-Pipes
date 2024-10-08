@@ -24,7 +24,6 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
     public static final byte CYCLE_LENGTH = 20;
     public static final String REQUESTS = "requests";
-    public static final byte TRANSFER_RATE = 4;
 
     public final ConnectionSet connections = new ConnectionSet();
     public final EssentiaRequestSet incomingRequests = new EssentiaRequestSet();
@@ -32,9 +31,11 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     private int rescanTickOffset = -1;
     private int requestTickOffset = -1;
     private WorldCoordinate coordinate;
+    private final int transferRate;
 
-    public TileEntityIOPipeSegment() {
+    public TileEntityIOPipeSegment(int transferRate) {
         super();
+        this.transferRate = transferRate;
     }
 
     public void markDirty(boolean internal) {
@@ -151,11 +152,12 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     private int calculateAmountToTake(IEssentiaTransport source, ForgeDirection takeFromFace, Aspect aspect) {
         if (source instanceof IAspectContainer container) {
-            final var containedAmount = container.getAspects().getAmount(aspect);
-            return Integer.min(TRANSFER_RATE, containedAmount);
+            final var containedAmount = container.getAspects()
+                .getAmount(aspect);
+            return Integer.min(transferRate, containedAmount);
         }
         final var contained = source.getEssentiaAmount(takeFromFace);
-        return Integer.min(TRANSFER_RATE, contained);
+        return Integer.min(transferRate, contained);
     }
 
     private IEssentiaTransport getEssentiaTransport(ForgeDirection dir) {
