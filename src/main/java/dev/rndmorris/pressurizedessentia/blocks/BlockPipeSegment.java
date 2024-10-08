@@ -3,7 +3,6 @@ package dev.rndmorris.pressurizedessentia.blocks;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -25,6 +24,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import dev.rndmorris.pressurizedessentia.PressurizedEssentia;
+import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeColor;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
@@ -147,7 +147,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB boundingBox,
-                                        List<AxisAlignedBB> list, Entity entity) {
+        List<AxisAlignedBB> list, Entity entity) {
         final var bound = calcBoundingBox(world, x, y, z);
         this.setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
         super.addCollisionBoxesToList(world, x, y, z, boundingBox, list, entity);
@@ -213,33 +213,97 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
         float min = 0.42F;
         float max = 0.58F;
-        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.DOWN)) {
-            cuboids.add(new IndexedCuboid6(0, new Cuboid6(((float)x + min), y, ((float)z + min), ((float)x + max), (double)y + 0.5D, ((float)z + max))));
+        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.DOWN)) {
+            cuboids.add(
+                new IndexedCuboid6(
+                    0,
+                    new Cuboid6(
+                        ((float) x + min),
+                        y,
+                        ((float) z + min),
+                        ((float) x + max),
+                        (double) y + 0.5D,
+                        ((float) z + max))));
         }
 
-        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.UP)) {
-            cuboids.add(new IndexedCuboid6(1, new Cuboid6(((float)x + min), (double)y + 0.5D, ((float)z + min), ((float)x + max), (y + 1), ((float)z + max))));
+        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.UP)) {
+            cuboids.add(
+                new IndexedCuboid6(
+                    1,
+                    new Cuboid6(
+                        ((float) x + min),
+                        (double) y + 0.5D,
+                        ((float) z + min),
+                        ((float) x + max),
+                        (y + 1),
+                        ((float) z + max))));
         }
 
-        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.NORTH)) {
-            cuboids.add(new IndexedCuboid6(2, new Cuboid6(((float)x + min), ((float)y + min), z, ((float)x + max), ((float)y + max), (double)z + 0.5D)));
+        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.NORTH)) {
+            cuboids.add(
+                new IndexedCuboid6(
+                    2,
+                    new Cuboid6(
+                        ((float) x + min),
+                        ((float) y + min),
+                        z,
+                        ((float) x + max),
+                        ((float) y + max),
+                        (double) z + 0.5D)));
         }
 
-        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.SOUTH)) {
-            cuboids.add(new IndexedCuboid6(3, new Cuboid6(((float)x + min), ((float)y + min), (double)z + 0.5D, ((float)x + max), ((float)y + max), (z + 1))));
+        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.SOUTH)) {
+            cuboids.add(
+                new IndexedCuboid6(
+                    3,
+                    new Cuboid6(
+                        ((float) x + min),
+                        ((float) y + min),
+                        (double) z + 0.5D,
+                        ((float) x + max),
+                        ((float) y + max),
+                        (z + 1))));
         }
 
-        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.WEST)) {
-            cuboids.add(new IndexedCuboid6(4, new Cuboid6(x, ((float)y + min), ((float)z + min), (double)x + 0.5D, ((float)y + max), ((float)z + max))));
+        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.WEST)) {
+            cuboids.add(
+                new IndexedCuboid6(
+                    4,
+                    new Cuboid6(
+                        x,
+                        ((float) y + min),
+                        ((float) z + min),
+                        (double) x + 0.5D,
+                        ((float) y + max),
+                        ((float) z + max))));
         }
 
-        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.EAST)) {
-            cuboids.add(new IndexedCuboid6(5, new Cuboid6((double)x + 0.5D, ((float)y + min), ((float)z + min), (x + 1), ((float)y + max), ((float)z + max))));
+        if (PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.EAST)) {
+            cuboids.add(
+                new IndexedCuboid6(
+                    5,
+                    new Cuboid6(
+                        (double) x + 0.5D,
+                        ((float) y + min),
+                        ((float) z + min),
+                        (x + 1),
+                        ((float) y + max),
+                        ((float) z + max))));
         }
 
-        cuboids.add(new IndexedCuboid6(6, new Cuboid6((double)x + 0.34375D, (double)y + 0.34375D, (double)z + 0.34375D, (double)x + 0.65625D, (double)y + 0.65625D, (double)z + 0.65625D)));
+        cuboids.add(
+            new IndexedCuboid6(
+                6,
+                new Cuboid6(
+                    (double) x + 0.34375D,
+                    (double) y + 0.34375D,
+                    (double) z + 0.34375D,
+                    (double) x + 0.65625D,
+                    (double) y + 0.65625D,
+                    (double) z + 0.65625D)));
 
-        return this.rayTracer.rayTraceCuboids(new Vector3(start), new Vector3(end), cuboids, new BlockCoord(x, y, z), this);
+        return this.rayTracer
+            .rayTraceCuboids(new Vector3(start), new Vector3(end), cuboids, new BlockCoord(x, y, z), this);
     }
 
     @Override

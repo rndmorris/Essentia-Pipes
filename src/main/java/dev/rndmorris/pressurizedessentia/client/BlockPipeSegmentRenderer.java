@@ -1,6 +1,5 @@
 package dev.rndmorris.pressurizedessentia.client;
 
-import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
@@ -11,14 +10,11 @@ import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
 import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
-import org.lwjgl.opengl.GL11;
-import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.client.renderers.block.BlockRenderer;
-
-import java.awt.*;
 
 @SideOnly(Side.CLIENT)
 public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlockRenderingHandler {
@@ -70,7 +66,9 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
                 continue;
             }
             final var adjacentTile = world.getTileEntity(x + dir.offsetX, y + dir.offsetY, z + dir.offsetZ);
-            final var needsExtension = (!(adjacentTile instanceof IIOPipeSegment) && adjacentTile instanceof IEssentiaTransport transport && transport.renderExtendedTube());
+            final var needsExtension = (!(adjacentTile instanceof IIOPipeSegment)
+                && adjacentTile instanceof IEssentiaTransport transport
+                && transport.renderExtendedTube());
             switch (dir) {
                 case DOWN -> {
                     yAxisMinY = needsExtension ? -BlockRenderer.W6 : 0;
