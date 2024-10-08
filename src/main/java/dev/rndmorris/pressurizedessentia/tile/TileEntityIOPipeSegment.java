@@ -23,8 +23,9 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     public static final String CONNECTIONS = "connections";
     public static final String ID = PressurizedEssentia.modid("IOPipeSegment");
-    public static final byte INTERVAL = 5;
+    public static final byte INTERVAL = 20;
     public static final String REQUESTS = "requests";
+    public static final byte TRANSFER_RATE = 4;
 
     public final ConnectionSet connections = new ConnectionSet();
     public final EssentiaRequestSet incomingRequests = new EssentiaRequestSet();
@@ -93,8 +94,6 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     }
 
     private void distributeEssentia() {
-        final var amountToTake = 1;
-
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var request = incomingRequests.getRequest(dir);
             if (request == null) {
@@ -118,7 +117,7 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
             // Some containers (e.g. jars) don't like giving essentia when aspect is null
             final var takeAspect = request.aspect != null ? request.aspect : pickAspectToTake(source, takeFromFace);
-            final var amountTaken = source.takeEssentia(takeAspect, amountToTake, takeFromFace);
+            final var amountTaken = source.takeEssentia(takeAspect, TRANSFER_RATE, takeFromFace);
             final var amountAdded = destination.addEssentia(takeAspect, amountTaken, request.destinationFace);
 
             final var leftovers = amountTaken - amountAdded;
