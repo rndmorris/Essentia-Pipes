@@ -1,6 +1,7 @@
 package dev.rndmorris.essentiapipes;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
 import dev.rndmorris.essentiapipes.client.CreativeTab;
@@ -16,6 +17,11 @@ public class CommonProxy {
 
     public void init(FMLInitializationEvent event) {
 
+    }
+
+    public void postInit(FMLPostInitializationEvent event) {
+        Recipes.postInit();
+        Research.postInit();
     }
 
     public CreativeTab getCreativeTab() {
