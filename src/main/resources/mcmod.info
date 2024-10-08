@@ -3,10 +3,10 @@
 	"modList": [{
 		"modid": "${modId}",
 		"name": "${modName}",
-		"description": "An essentia pipe replacement for Thaumcraft 4",
+		"description": "A complementary replacement for Thaumcraft 4's essentia tubes",
 		"version": "${modVersion}",
 		"mcversion": "${minecraftVersion}",
-		"url": "https://github.com/rndmorris/pressurized-essentia",
+		"url": "https://github.com/rndmorris/essentia-pipes",
 		"updateUrl": "",
 		"authorList": ["rndmorris"],
 		"credits": "",
