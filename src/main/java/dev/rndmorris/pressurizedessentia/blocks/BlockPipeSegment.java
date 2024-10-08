@@ -1,5 +1,6 @@
 package dev.rndmorris.pressurizedessentia.blocks;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
@@ -14,6 +15,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -30,6 +33,11 @@ import dev.rndmorris.pressurizedessentia.items.ItemBlockPipeSegment;
 import dev.rndmorris.pressurizedessentia.tile.TileEntityIOPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.api.wands.IWandable;
+import thaumcraft.codechicken.lib.raytracer.IndexedCuboid6;
+import thaumcraft.codechicken.lib.raytracer.RayTracer;
+import thaumcraft.codechicken.lib.vec.BlockCoord;
+import thaumcraft.codechicken.lib.vec.Cuboid6;
+import thaumcraft.codechicken.lib.vec.Vector3;
 
 public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntityProvider, IWandable {
 
@@ -100,17 +108,20 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
     public final IIcon[] valveIcon = new IIcon[1];
+    private final RayTracer rayTracer = new RayTracer();
 
     protected BlockPipeSegment() {
         super(Material.iron);
-        final var bound = calcBoundingBox(null, 0, 0, 0);
-        setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
+        setHardness(0.5F);
+        setResistance(10F);
+        setStepSound(Block.soundTypeMetal);
+        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
     }
 
     private float[] calcBoundingBox(World world, int x, int y, int z) {
-        float minX = BlockPipeSegmentRenderer.INSET, maxX = BlockPipeSegmentRenderer.R_INSET,
-            minY = BlockPipeSegmentRenderer.INSET, maxY = BlockPipeSegmentRenderer.R_INSET,
-            minZ = BlockPipeSegmentRenderer.INSET, maxZ = BlockPipeSegmentRenderer.R_INSET;
+        float minX = BlockPipeSegmentRenderer.INSET_VALVE, maxX = BlockPipeSegmentRenderer.R_INSET_VALVE,
+            minY = BlockPipeSegmentRenderer.INSET_VALVE, maxY = BlockPipeSegmentRenderer.R_INSET_VALVE,
+            minZ = BlockPipeSegmentRenderer.INSET_VALVE, maxZ = BlockPipeSegmentRenderer.R_INSET_VALVE;
         if (world != null) {
             for (var dir : ForgeDirection.VALID_DIRECTIONS) {
                 if (!PipeHelper.canConnect(world, x, y, z, dir)) {
@@ -133,6 +144,14 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     //
     // Overrides
     //
+
+    @Override
+    public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB boundingBox,
+                                        List<AxisAlignedBB> list, Entity entity) {
+        final var bound = calcBoundingBox(world, x, y, z);
+        this.setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
+        super.addCollisionBoxesToList(world, x, y, z, boundingBox, list, entity);
+    }
 
     @Override
     public void breakBlock(World world, int x, int y, int z, Block blockBroken, int meta) {
@@ -177,14 +196,6 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     @Override
-    public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB boundingBox,
-        List<AxisAlignedBB> list, Entity entity) {
-        final var bound = calcBoundingBox(world, x, y, z);
-        this.setBlockBounds(bound[0], bound[1], bound[2], bound[3], bound[4], bound[5]);
-        super.addCollisionBoxesToList(world, x, y, z, boundingBox, list, entity);
-    }
-
-    @Override
     public boolean isOpaqueCube() {
         return false;
     }
@@ -197,11 +208,61 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     @Override
+    public MovingObjectPosition collisionRayTrace(World world, int x, int y, int z, Vec3 start, Vec3 end) {
+        final var cuboids = new ArrayList<IndexedCuboid6>(6);
+
+        float min = 0.42F;
+        float max = 0.58F;
+        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.DOWN)) {
+            cuboids.add(new IndexedCuboid6(0, new Cuboid6(((float)x + min), y, ((float)z + min), ((float)x + max), (double)y + 0.5D, ((float)z + max))));
+        }
+
+        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.UP)) {
+            cuboids.add(new IndexedCuboid6(1, new Cuboid6(((float)x + min), (double)y + 0.5D, ((float)z + min), ((float)x + max), (y + 1), ((float)z + max))));
+        }
+
+        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.NORTH)) {
+            cuboids.add(new IndexedCuboid6(2, new Cuboid6(((float)x + min), ((float)y + min), z, ((float)x + max), ((float)y + max), (double)z + 0.5D)));
+        }
+
+        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.SOUTH)) {
+            cuboids.add(new IndexedCuboid6(3, new Cuboid6(((float)x + min), ((float)y + min), (double)z + 0.5D, ((float)x + max), ((float)y + max), (z + 1))));
+        }
+
+        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.WEST)) {
+            cuboids.add(new IndexedCuboid6(4, new Cuboid6(x, ((float)y + min), ((float)z + min), (double)x + 0.5D, ((float)y + max), ((float)z + max))));
+        }
+
+        if(PipeHelper.shouldVisuallyConnect(world, x, y, z, ForgeDirection.EAST)) {
+            cuboids.add(new IndexedCuboid6(5, new Cuboid6((double)x + 0.5D, ((float)y + min), ((float)z + min), (x + 1), ((float)y + max), ((float)z + max))));
+        }
+
+        cuboids.add(new IndexedCuboid6(6, new Cuboid6((double)x + 0.34375D, (double)y + 0.34375D, (double)z + 0.34375D, (double)x + 0.65625D, (double)y + 0.65625D, (double)z + 0.65625D)));
+
+        return this.rayTracer.rayTraceCuboids(new Vector3(start), new Vector3(end), cuboids, new BlockCoord(x, y, z), this);
+    }
+
+    @Override
     public void onNeighborBlockChange(World world, int x, int y, int z, Block neighbor) {
         super.onNeighborBlockChange(world, x, y, z, neighbor);
         if (!(neighbor instanceof IPipeSegment) && verifyIOState(world, x, y, z)) {
             PipeHelper.notifySegmentAddedOrChanged(world, x, y, z);
         }
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void registerBlockIcons(IIconRegister reg) {
+        for (var index = 0; index < icons.length; ++index) {
+            final var path = String.format("%s:%s_%01d", PressurizedEssentia.MODID, ID, index);
+            icons[index] = reg.registerIcon(path);
+        }
+        valveIcon[0] = reg.registerIcon("thaumcraft:pipe_2");
+    }
+
+    @Override
+    public boolean renderAsNormalBlock() {
+        return false;
     }
 
     ///
@@ -222,21 +283,6 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         return pipeColorFromMetadata(metadata);
     }
 
-    @Override
-    @SideOnly(Side.CLIENT)
-    public void registerBlockIcons(IIconRegister reg) {
-        for (var index = 0; index < icons.length; ++index) {
-            final var path = String.format("%s:%s_%01d", PressurizedEssentia.MODID, ID, index);
-            icons[index] = reg.registerIcon(path);
-        }
-        valveIcon[0] = reg.registerIcon("thaumcraft:pipe_2");
-    }
-
-    @Override
-    public boolean renderAsNormalBlock() {
-        return false;
-    }
-
     ///
     /// ITileEntityProvider
     ///
@@ -250,6 +296,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     /// IWandable
     ///
 
+    @Override
     public int onWandRightClick(World world, ItemStack wandStack, EntityPlayer player, int x, int y, int z, int side,
         int metadata) {
         final var color = pipeColorFromMetadata(metadata);
@@ -262,14 +309,17 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         return 0;
     }
 
+    @Override
     public ItemStack onWandRightClick(World var1, ItemStack var2, EntityPlayer var3) {
         return null;
     }
 
+    @Override
     public void onUsingWandTick(ItemStack var1, EntityPlayer var2, int var3) {
 
     }
 
+    @Override
     public void onWandStoppedUsing(ItemStack var1, World var2, EntityPlayer var3, int var4) {
 
     }
