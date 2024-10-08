@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.api;
+package dev.rndmorris.essentiapipes.api;
 
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -10,7 +10,7 @@ public interface IPipeSegment {
 
     /**
      * Check if the pipe segment is willing to connect to the block in the stated direciton.
-     * 
+     *
      * @param position The position of the block to check.
      * @param face     The direction to check against.
      * @return True if the pipe segment can connect in that direction, or false if not.
@@ -19,7 +19,7 @@ public interface IPipeSegment {
 
     /**
      * Check if the pipe segment is willing to connect to the block in the stated direciton.
-     * 
+     *
      * @param world The world in which the pipe segment to check exists.
      * @param x     The x coordinate of the pipe segment to check.
      * @param y     The y coordinate of the pipe segment to check.
@@ -31,7 +31,7 @@ public interface IPipeSegment {
 
     /**
      * Get the color of the pipe segment at this world and coordinate.
-     * 
+     *
      * @param position The coordinate of the pipe segment to check.
      * @return The color of the pipe, or null if there is no pipe.
      */
@@ -39,7 +39,7 @@ public interface IPipeSegment {
 
     /**
      * Get the color of the pipe segment at this world and coordinate.
-     * 
+     *
      * @param world The world in which the pipe segment to check exists.
      * @param x     The x coordinate of the pipe segment to check.
      * @param y     The y coordinate of the pipe segment to check.

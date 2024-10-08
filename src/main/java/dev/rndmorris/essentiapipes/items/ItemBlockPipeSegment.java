@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.items;
+package dev.rndmorris.essentiapipes.items;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -7,8 +7,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import dev.rndmorris.pressurizedessentia.api.IPipeSegment;
-import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
+import dev.rndmorris.essentiapipes.api.IPipeSegment;
+import dev.rndmorris.essentiapipes.api.WorldCoordinate;
 
 public class ItemBlockPipeSegment extends ItemBlock {
 

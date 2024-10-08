@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.api;
+package dev.rndmorris.essentiapipes.api;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;

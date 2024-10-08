@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.api;
+package dev.rndmorris.essentiapipes.api;
 
 import java.util.Comparator;
 
@@ -46,10 +46,10 @@ public record WorldCoordinate(int dimensionId, int x, int y, int z)
         return world.getBlock(x, y, z);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getBlock(Class<T> clazz) {
         final var block = getBlock();
         if (block != null && clazz.isAssignableFrom(block.getClass())) {
-            // noinspection unchecked
             return (T) block;
         }
         return null;
@@ -71,10 +71,10 @@ public record WorldCoordinate(int dimensionId, int x, int y, int z)
         return world.getTileEntity(x, y, z);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getTileEntity(Class<T> clazz) {
         final var entity = getTileEntity();
         if (entity != null && clazz.isAssignableFrom(entity.getClass())) {
-            // noinspection unchecked
             return (T) entity;
         }
         return null;

@@ -1,9 +1,9 @@
-package dev.rndmorris.pressurizedessentia;
+package dev.rndmorris.essentiapipes;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
-import dev.rndmorris.pressurizedessentia.client.CreativeTab;
+import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
+import dev.rndmorris.essentiapipes.client.CreativeTab;
 
 public class CommonProxy {
 

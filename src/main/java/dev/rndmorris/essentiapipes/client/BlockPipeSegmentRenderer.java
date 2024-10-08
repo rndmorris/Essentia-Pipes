@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.client;
+package dev.rndmorris.essentiapipes.client;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -10,9 +10,9 @@ import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
-import dev.rndmorris.pressurizedessentia.api.PipeHelper;
-import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
+import dev.rndmorris.essentiapipes.api.IIOPipeSegment;
+import dev.rndmorris.essentiapipes.api.PipeHelper;
+import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.client.renderers.block.BlockRenderer;
 

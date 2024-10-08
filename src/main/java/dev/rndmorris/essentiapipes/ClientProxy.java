@@ -1,8 +1,8 @@
-package dev.rndmorris.pressurizedessentia;
+package dev.rndmorris.essentiapipes;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import dev.rndmorris.pressurizedessentia.client.BlockPipeSegmentRenderer;
-import dev.rndmorris.pressurizedessentia.client.CreativeTab;
+import dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer;
+import dev.rndmorris.essentiapipes.client.CreativeTab;
 
 @SuppressWarnings("unused")
 public class ClientProxy extends CommonProxy {

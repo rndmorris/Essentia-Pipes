@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.data;
+package dev.rndmorris.essentiapipes.data;
 
 import java.util.TreeSet;
 
@@ -7,8 +7,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-import dev.rndmorris.pressurizedessentia.api.ConnectionInfo;
-import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
+import dev.rndmorris.essentiapipes.api.ConnectionInfo;
+import dev.rndmorris.essentiapipes.api.WorldCoordinate;
 
 public class ConnectionSet extends TreeSet<ConnectionInfo> {
 

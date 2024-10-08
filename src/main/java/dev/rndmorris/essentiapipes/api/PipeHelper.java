@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.api;
+package dev.rndmorris.essentiapipes.api;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.api;
+package dev.rndmorris.essentiapipes.api;
 
 import javax.annotation.Nonnull;
 
@@ -32,7 +32,7 @@ public enum PipeColor {
 
     /**
      * Get a color from its id.
-     * 
+     *
      * @param id The id of the color.
      * @return A color if the id is valid, or null if not.
      */
@@ -45,7 +45,7 @@ public enum PipeColor {
 
     /**
      * Evaluate if this color should connect to another.
-     * 
+     *
      * @param color The color to compare against.
      * @return True if the color will connect to the other, or false if not.
      */
@@ -55,7 +55,7 @@ public enum PipeColor {
 
     /**
      * Get the next color in the cycle, looping back around to the first upon reaching the end.
-     * 
+     *
      * @return The next color.
      */
     public PipeColor nextColor() {
@@ -64,7 +64,7 @@ public enum PipeColor {
 
     /**
      * Get the previous color in the cycle, looping back around to the last upon reaching the beginning.
-     * 
+     *
      * @return The previous color.
      */
     public PipeColor prevColor() {

@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia;
+package dev.rndmorris.essentiapipes;
 
 import java.io.File;
 

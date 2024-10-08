@@ -1,10 +1,10 @@
-package dev.rndmorris.pressurizedessentia.client;
+package dev.rndmorris.essentiapipes.client;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 
-import dev.rndmorris.pressurizedessentia.EssentiaPipes;
-import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
+import dev.rndmorris.essentiapipes.EssentiaPipes;
+import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
 
 public class CreativeTab extends CreativeTabs {
 

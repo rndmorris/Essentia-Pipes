@@ -1,18 +1,18 @@
-package dev.rndmorris.pressurizedessentia.tile;
+package dev.rndmorris.essentiapipes.tile;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import dev.rndmorris.pressurizedessentia.EssentiaPipes;
-import dev.rndmorris.pressurizedessentia.api.EssentiaRequest;
-import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
-import dev.rndmorris.pressurizedessentia.api.PipeHelper;
-import dev.rndmorris.pressurizedessentia.api.WorldCoordinate;
-import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
-import dev.rndmorris.pressurizedessentia.data.ConnectionSet;
-import dev.rndmorris.pressurizedessentia.data.EssentiaRequestSet;
+import dev.rndmorris.essentiapipes.EssentiaPipes;
+import dev.rndmorris.essentiapipes.api.EssentiaRequest;
+import dev.rndmorris.essentiapipes.api.IIOPipeSegment;
+import dev.rndmorris.essentiapipes.api.PipeHelper;
+import dev.rndmorris.essentiapipes.api.WorldCoordinate;
+import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
+import dev.rndmorris.essentiapipes.data.ConnectionSet;
+import dev.rndmorris.essentiapipes.data.EssentiaRequestSet;
 import thaumcraft.api.TileThaumcraft;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.IAspectContainer;

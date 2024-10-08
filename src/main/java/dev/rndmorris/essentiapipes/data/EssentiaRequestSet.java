@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.data;
+package dev.rndmorris.essentiapipes.data;
 
 import java.util.Objects;
 
@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import dev.rndmorris.pressurizedessentia.api.EssentiaRequest;
+import dev.rndmorris.essentiapipes.api.EssentiaRequest;
 
 public class EssentiaRequestSet {
 

@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.api;
+package dev.rndmorris.essentiapipes.api;
 
 import java.util.Comparator;
 
@@ -34,7 +34,7 @@ public record ConnectionInfo(@Nonnull WorldCoordinate coordinate, int distance)
 
     /**
      * Get the IIOPipeSegment at the coordinate.
-     * 
+     *
      * @return The IIOPipeSegment if it exists, or null if not.
      */
     public @Nullable IIOPipeSegment getIOSegment() {

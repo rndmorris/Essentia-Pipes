@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia;
+package dev.rndmorris.essentiapipes;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,8 +25,8 @@ public class EssentiaPipes {
     }
 
     @SidedProxy(
-        clientSide = "dev.rndmorris.pressurizedessentia.ClientProxy",
-        serverSide = "dev.rndmorris.pressurizedessentia.CommonProxy")
+        clientSide = "dev.rndmorris.essentiapipes.ClientProxy",
+        serverSide = "dev.rndmorris.essentiapipes.CommonProxy")
     public static CommonProxy proxy;
 
     @Mod.EventHandler

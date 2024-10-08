@@ -1,4 +1,4 @@
-package dev.rndmorris.pressurizedessentia.api;
+package dev.rndmorris.essentiapipes.api;
 
 import thaumcraft.api.aspects.IEssentiaTransport;
 
@@ -9,7 +9,7 @@ public interface IIOPipeSegment extends IEssentiaTransport {
 
     /**
      * Determine if an essentia request could potentially be fulfilled by this node.
-     * 
+     *
      * @param incomingRequest The request to evaluate.
      * @return True if the request could be granted by this IO segment, or false if not. A true result DOES NOT mean a
      *         request will be fulfilled.
@@ -18,7 +18,7 @@ public interface IIOPipeSegment extends IEssentiaTransport {
 
     /**
      * The world coordinate of this IO segment.
-     * 
+     *
      * @return This segment's world coordinate.
      */
     WorldCoordinate getCoordinate();

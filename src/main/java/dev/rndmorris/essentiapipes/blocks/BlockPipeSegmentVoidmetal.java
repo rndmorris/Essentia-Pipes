@@ -1,6 +1,6 @@
-package dev.rndmorris.pressurizedessentia.blocks;
+package dev.rndmorris.essentiapipes.blocks;
 
-import dev.rndmorris.pressurizedessentia.Config;
+import dev.rndmorris.essentiapipes.Config;
 
 public class BlockPipeSegmentVoidmetal extends BlockPipeSegment {
 
