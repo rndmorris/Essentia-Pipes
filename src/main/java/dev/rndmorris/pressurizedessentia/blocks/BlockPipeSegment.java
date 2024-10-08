@@ -98,8 +98,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         return false;
     }
 
-    public final IIcon[] icons = new IIcon[PipeColor.COLORS.length * 2];
-    public final IIcon[] extendedIcons = new IIcon[PipeColor.COLORS.length * 2];
+    public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
+    public final IIcon[] valveIcon = new IIcon[1];
 
     protected BlockPipeSegment() {
         super(Material.iron);
@@ -152,7 +152,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public IIcon getIcon(int side, int metadata) {
-        return extendedIcons[metadata];
+        final var color = pipeColorFromMetadata(metadata);
+        return icons[color.id];
     }
 
     @Override
@@ -225,11 +226,10 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
         for (var index = 0; index < icons.length; ++index) {
-            final var path = String.format("%s:%s_%02d", PressurizedEssentia.MODID, ID, index);
+            final var path = String.format("%s:%s_%01d", PressurizedEssentia.MODID, ID, index);
             icons[index] = reg.registerIcon(path);
-            final var extendedPath = String.format("%s:%s_extended_%02d", PressurizedEssentia.MODID, ID, index);
-            extendedIcons[index] = reg.registerIcon(extendedPath);
         }
+        valveIcon[0] = reg.registerIcon("thaumcraft:pipe_2");
     }
 
     @Override

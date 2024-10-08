@@ -1,7 +1,9 @@
 package dev.rndmorris.pressurizedessentia.client;
 
+import dev.rndmorris.pressurizedessentia.api.IIOPipeSegment;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -11,7 +13,12 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import dev.rndmorris.pressurizedessentia.api.PipeHelper;
 import dev.rndmorris.pressurizedessentia.blocks.BlockPipeSegment;
+import org.lwjgl.opengl.GL11;
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.client.renderers.block.BlockRenderer;
+
+import java.awt.*;
 
 @SideOnly(Side.CLIENT)
 public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlockRenderingHandler {
@@ -28,12 +35,16 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
     @Override
     public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
         final var icon = block.getIcon(0, metadata);
+        block.setBlockBounds(INSET, INSET, INSET, R_INSET, R_INSET, R_INSET);
+        renderer.setRenderBoundsFromBlock(block);
         BlockRenderer.drawFaces(renderer, block, icon, false);
     }
 
     public final static float PIXEL = 1F / 16F;
-    public final static float INSET = 6 * PIXEL;
+    public final static float INSET = 6.5F * PIXEL;
     public final static float R_INSET = 1F - INSET;
+    public final static float INSET_VALVE = 6 * PIXEL;
+    public final static float R_INSET_VALVE = 1F - INSET_VALVE;
 
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId,
@@ -58,33 +69,37 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
             if (!PipeHelper.shouldVisuallyConnect(world, x, y, z, dir)) {
                 continue;
             }
+            final var adjacentTile = world.getTileEntity(x + dir.offsetX, y + dir.offsetY, z + dir.offsetZ);
+            final var needsExtension = (!(adjacentTile instanceof IIOPipeSegment) && adjacentTile instanceof IEssentiaTransport transport && transport.renderExtendedTube());
             switch (dir) {
                 case DOWN -> {
-                    yAxisMinY = 0;
+                    yAxisMinY = needsExtension ? -BlockRenderer.W6 : 0;
                     renderY = true;
                 }
                 case UP -> {
-                    yAxisMaxY = 1;
+                    yAxisMaxY = needsExtension ? 1 + BlockRenderer.W6 : 1;
                     renderY = true;
                 }
                 case NORTH -> {
-                    zAxisMinZ = 0;
+                    zAxisMinZ = needsExtension ? -BlockRenderer.W6 : 0;
                     renderZ = true;
                 }
                 case SOUTH -> {
-                    zAxisMaxZ = 1;
+                    zAxisMaxZ = needsExtension ? 1 + BlockRenderer.W6 : 1;
                     renderZ = true;
                 }
                 case WEST -> {
-                    xAxisMinX = 0;
+                    xAxisMinX = needsExtension ? -BlockRenderer.W6 : 0;
                     renderX = true;
                 }
                 case EAST -> {
-                    xAxisMaxX = 1;
+                    xAxisMaxX = needsExtension ? 1 + BlockRenderer.W6 : 1;
                     renderX = true;
                 }
             }
         }
+
+        final var metadata = world.getBlockMetadata(x, y, z);
 
         var renderedAny = false;
         if (renderX) {
@@ -106,19 +121,24 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
             renderer.renderStandardBlock(block, x, y, z);
         }
 
-        final var metadata = world.getBlockMetadata(x, y, z);
-
         if (!renderedAny) {
-            renderer.overrideBlockTexture = pipeSegment.icons[metadata];
             block.setBlockBounds(INSET, INSET, INSET, R_INSET, R_INSET, R_INSET);
+            renderer.setRenderBoundsFromBlock(block);
+            renderer.renderStandardBlock(block, x, y, z);
+        }
+
+        if (BlockPipeSegment.isIOSegment(metadata)) {
+            renderer.overrideBlockTexture = pipeSegment.valveIcon[0];
+            block.setBlockBounds(INSET_VALVE, INSET_VALVE, INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE);
             renderer.setRenderBoundsFromBlock(block);
             renderer.renderStandardBlock(block, x, y, z);
         }
 
         renderer.field_152631_f = false;
 
+        Tessellator.instance.setColorOpaque_F(1, 1, 1);
         renderer.clearOverrideBlockTexture();
-        block.setBlockBounds(INSET, INSET, INSET, R_INSET, R_INSET, R_INSET);
+        block.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
         renderer.setRenderBoundsFromBlock(block);
         return true;
     }

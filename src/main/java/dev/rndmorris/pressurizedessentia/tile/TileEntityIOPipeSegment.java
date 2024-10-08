@@ -247,7 +247,7 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public boolean renderExtendedTube() {
-        return true;
+        return false;
     }
 
     ///
