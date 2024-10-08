@@ -9,8 +9,17 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.essentiapipes.api.IPipeSegment;
 import dev.rndmorris.essentiapipes.api.WorldCoordinate;
+import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
 
 public class ItemBlockPipeSegment extends ItemBlock {
+
+    public static ItemStack pipeBasic() {
+        return new ItemStack(BlockPipeSegment.pipe_segment);
+    }
+
+    public static ItemStack pipeThaumium(int qty) {
+        return new ItemStack(BlockPipeSegment.pipe_segment_thaumium, qty);
+    }
 
     public ItemBlockPipeSegment(Block p_i45328_1_) {
         super(p_i45328_1_);
