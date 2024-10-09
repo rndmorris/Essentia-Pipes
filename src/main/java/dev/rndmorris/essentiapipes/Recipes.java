@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 
 import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
 import thaumcraft.api.ItemApi;
+import thaumcraft.api.ThaumcraftApi;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.AspectList;
 import thaumcraft.api.crafting.CrucibleRecipe;
@@ -18,7 +19,7 @@ public class Recipes {
     public static void postInit() {
         final var essentiaTube = ItemApi.getBlock("blockTube", 0);
         final var basicPipe = new ItemStack(BlockPipeSegment.pipe_segment, 1);
-        basicPipeRecipe = new CrucibleRecipe(
+        basicPipeRecipe = ThaumcraftApi.addCrucibleRecipe(
             Research.PIPES_BASIC,
             basicPipe,
             essentiaTube,
@@ -30,10 +31,10 @@ public class Recipes {
         final var twoThaumiumPipes = new ItemStack(BlockPipeSegment.pipe_segment_thaumium, 2);
         final var thaumiumBlock = ItemApi.getBlock("blockCosmeticSolid", 4);
         final var bellows = ItemApi.getBlock("blockWoodenDevice", 0);
-        thaumiumPipeRecipe = new InfusionRecipe(
+        thaumiumPipeRecipe = ThaumcraftApi.addInfusionCraftingRecipe(
             Research.PIPES_THAUMIUM,
             twoThaumiumPipes,
-            5,
+            3,
             new AspectList().add(Aspect.METAL, 8)
                 .add(Aspect.MAGIC, 4)
                 .add(Aspect.VOID, 2),
@@ -44,11 +45,11 @@ public class Recipes {
         final var thaumiumPipe = new ItemStack(BlockPipeSegment.pipe_segment_thaumium);
         final var hungryChest = ItemApi.getBlock("blockChestHungry", 0);
         final var voidmetalIngot = ItemApi.getItem("itemResource", 16);
-        final var voidmetalPipe = new ItemStack(BlockPipeSegment.pipe_segment_voidmetal, 2);
-        voidmetalPipeRecipe = new InfusionRecipe(
+        final var twoVoidmetalPipes = new ItemStack(BlockPipeSegment.pipe_segment_voidmetal, 2);
+        voidmetalPipeRecipe = ThaumcraftApi.addInfusionCraftingRecipe(
             Research.PIPES_VOIDMETAL,
-            voidmetalPipe,
-            10,
+            twoVoidmetalPipes,
+            7,
             new AspectList().add(Aspect.METAL, 16)
                 .add(Aspect.ELDRITCH, 16)
                 .add(Aspect.VOID, 8)
@@ -56,5 +57,8 @@ public class Recipes {
             hungryChest,
             new ItemStack[] { bellows, thaumiumPipe, voidmetalIngot, thaumiumPipe, voidmetalIngot, thaumiumPipe,
                 bellows, thaumiumPipe, voidmetalIngot, thaumiumPipe, voidmetalIngot, thaumiumPipe, });
+
+        ;
+
     }
 }
