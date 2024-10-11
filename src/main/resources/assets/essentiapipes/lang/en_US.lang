@@ -1,6 +1,7 @@
 tile.essentiapipes:pipe_segment.name=Essentia Pipe
 tile.essentiapipes:pipe_segment_thaumium.name=Thaumium-Reinforced Essentia Pipe
 tile.essentiapipes:pipe_segment_voidmetal.name=Voidmetal-Reinforced Essentia Pipe
+tile.essentiapipes:phial_display.name=Phials of Essentia
 
 itemGroup.essentiapipes=Essentia Pipes
 

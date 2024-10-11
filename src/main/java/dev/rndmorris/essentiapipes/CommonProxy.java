@@ -3,8 +3,10 @@ package dev.rndmorris.essentiapipes;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
 import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
 import dev.rndmorris.essentiapipes.client.CreativeTab;
+import dev.rndmorris.essentiapipes.events.PlayerEvents;
 
 public class CommonProxy {
 
@@ -13,6 +15,8 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         BlockPipeSegment.preInit();
+        BlockPhialDisplay.preInit();
+        PlayerEvents.preInit();
     }
 
     public void init(FMLInitializationEvent event) {
