@@ -44,8 +44,8 @@ public class Recipes {
                     .add(Aspect.MAGIC, 4)
                     .add(Aspect.VOID, 2),
                 thaumiumBlock,
-                new ItemStack[] { bellows, previousPipe, previousPipe, previousPipe, previousPipe, bellows, previousPipe, previousPipe,
-                    previousPipe, previousPipe, });
+                new ItemStack[] { bellows, previousPipe, previousPipe, previousPipe, previousPipe, bellows,
+                    previousPipe, previousPipe, previousPipe, previousPipe, });
             previousPipe = new ItemStack(BlockPipeSegment.pipe_segment_thaumium, 1);
         }
 
