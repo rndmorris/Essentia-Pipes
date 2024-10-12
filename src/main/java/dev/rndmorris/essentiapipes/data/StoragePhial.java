@@ -1,5 +1,6 @@
 package dev.rndmorris.essentiapipes.data;
 
+import net.minecraft.nbt.NBTTagCompound;
 import thaumcraft.api.aspects.Aspect;
 
 import javax.annotation.Nonnull;
@@ -8,8 +9,16 @@ import javax.annotation.Nullable;
 public class StoragePhial implements Comparable<StoragePhial> {
     public static final byte MAX_AMOUNT = 8;
 
-    public Aspect aspect;
-    public byte amount;
+    private byte amount;
+    private Aspect aspect;
+
+    public byte getAmount() {
+        return amount;
+    }
+
+    public Aspect getAspect() {
+        return aspect;
+    }
 
     /**
      * Add essentia to the phial
@@ -21,21 +30,27 @@ public class StoragePhial implements Comparable<StoragePhial> {
         if (this.aspect != null && this.aspect != aspect) {
             return amount;
         }
+        this.aspect = aspect;
         final var added = (byte) Math.min(MAX_AMOUNT - this.amount, amount);
         this.amount += added;
         return (byte)(amount - added);
     }
 
-    public boolean canTakeAspect(@Nonnull Aspect aspect) {
+    public boolean acceptsAspect(@Nonnull Aspect aspect) {
         return this.aspect == null || this.aspect == aspect;
     }
 
-    public boolean canAcceptEssentia() {
-        return (MAX_AMOUNT - amount) > 0;
+    public boolean isFull() {
+        return amount >= MAX_AMOUNT;
+    }
+
+    public boolean isNotFull() {
+        return !isFull();
     }
 
     /**
      * Take essentia from the phial
+     * @param aspect The aspect to take
      * @param amount The amount to take
      * @return The amount of essentia taken
      */
@@ -50,6 +65,23 @@ public class StoragePhial implements Comparable<StoragePhial> {
             this.aspect = null;
         }
         return taken;
+    }
+
+    public void readFromNBT(NBTTagCompound nbtTagCompound) {
+        if (nbtTagCompound.hasKey("tag")) {
+            final var tag = nbtTagCompound.getString("tag");
+            if (!tag.equalsIgnoreCase("")) {
+                aspect = Aspect.getAspect(tag);
+            }
+        }
+        if (nbtTagCompound.hasKey("amount")) {
+            amount = nbtTagCompound.getByte("amount");
+        }
+    }
+
+    public void writeToNBT(NBTTagCompound nbtTagCompound) {
+        nbtTagCompound.setString("tag", aspect != null ? aspect.getTag() : "");
+        nbtTagCompound.setByte("amount", amount);
     }
 
     //

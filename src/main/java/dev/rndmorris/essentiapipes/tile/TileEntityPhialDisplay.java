@@ -1,5 +1,6 @@
 package dev.rndmorris.essentiapipes.tile;
 
+import dev.rndmorris.essentiapipes.data.StoragePhialSet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,21 +13,12 @@ import thaumcraft.api.aspects.IAspectContainer;
 import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.common.items.ItemEssence;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectContainer, IEssentiaTransport {
 
     public static final String ID = "PhialDisplay";
     public static final ForgeDirection ACCESS_FROM = ForgeDirection.UP;
-    public static final byte MAX_ASPECTS = 4;
-    public static final byte MAX_PHIALS = 4;
-    public static final byte MAX_VIS = 32;
-
-    public static final String PHIAL_COUNT = "phialCount";
 
     private static ItemEssence itemEssence;
-
     private static ItemEssence itemEssence() {
         if (itemEssence == null) {
             itemEssence = (ItemEssence) ItemApi.getItem("itemEssence", 0).getItem();
@@ -34,15 +26,14 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         return itemEssence;
     }
 
-    private AspectList storedAspects = new AspectList();
-    private byte phialCount = 0;
+    private final StoragePhialSet phials = new StoragePhialSet(4);
 
     public TileEntityPhialDisplay() {
 
     }
 
     public byte remainingPhialCapacity() {
-        return (byte)(MAX_PHIALS - phialCount);
+        return (byte) phials.remainingPhialCapacity();
     }
 
     private boolean notPhial(ItemStack itemStack) {
@@ -57,17 +48,20 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     }
 
     public void addPhial(EntityPlayer player, ItemStack itemStack) {
-        if (notPhial(itemStack) || phialCount >= MAX_PHIALS) {
+        if (notPhial(itemStack)) {
+            return;
+        }
+        if (phials.remainingPhialCapacity() <= 0) {
             return;
         }
 
+        phials.addPhial();
         final var itemAspects = itemEssence().getAspects(itemStack);
         if (itemAspects != null) {
             final var aspectEntry = itemAspects.aspects.entrySet().iterator().next();
             addEssentia(aspectEntry.getKey(), aspectEntry.getValue(), ACCESS_FROM);
         }
 
-        phialCount += 1;
         if (!player.capabilities.isCreativeMode) {
             itemStack.stackSize--;
             player.inventoryContainer.detectAndSendChanges();
@@ -102,16 +96,12 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public void readCustomNBT(NBTTagCompound nbttagcompound) {
-        storedAspects.readFromNBT(nbttagcompound);
-        if (nbttagcompound.hasKey(PHIAL_COUNT)) {
-            phialCount = nbttagcompound.getByte(PHIAL_COUNT);
-        }
+        phials.readFromNBT(nbttagcompound);
     }
 
     @Override
     public void writeCustomNBT(NBTTagCompound nbttagcompound) {
-        storedAspects.writeToNBT(nbttagcompound);
-        nbttagcompound.setByte(PHIAL_COUNT, phialCount);
+        phials.writeToNBT(nbttagcompound);
     }
 
     //
@@ -120,26 +110,36 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public AspectList getAspects() {
-        return this.storedAspects;
+        return this.phials.toAspectList();
     }
 
     @Override
-    public void setAspects(AspectList aspects) {
-        this.storedAspects = aspects.copy();
+    public void setAspects(AspectList aspects) { }
+
+    @Override
+    public boolean doesContainerAccept(Aspect aspect) {
+        return phials.acceptsAspect(aspect);
     }
 
     @Override
-    public boolean doesContainerAccept(Aspect var1) {
-        return false;
+    public int addToContainer(Aspect aspect, int amount) {
+        if (amount == 0) {
+            return amount;
+        }
+        final var leftover =  phials.addEssentia(aspect, amount);
+        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        markDirty();
+        return leftover;
     }
 
     @Override
-    public int addToContainer(Aspect var1, int var2) {
-        return 0;
-    }
-
-    @Override
-    public boolean takeFromContainer(Aspect var1, int var2) {
+    public boolean takeFromContainer(Aspect aspect, int amount) {
+        if (phials.totalAmountStored(aspect) >= amount) {
+            phials.takeEssentia(aspect, amount);
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            markDirty();
+            return true;
+        }
         return false;
     }
 
@@ -183,9 +183,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     }
 
     @Override
-    public void setSuction(Aspect var1, int var2) {
-
-    }
+    public void setSuction(Aspect var1, int var2) {}
 
     @Override
     public Aspect getSuctionType(ForgeDirection var1) {
@@ -194,30 +192,27 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public int getSuctionAmount(ForgeDirection var1) {
-        return storedAspects.visSize() < MAX_VIS ? 1 : 0;
+        return phials.allPhialsFull() ? 0 : 1;
     }
 
     @Override
-    public int takeEssentia(Aspect var1, int var2, ForgeDirection var3) {
-        return 0;
+    public int takeEssentia(Aspect aspect, int amount, ForgeDirection face) {
+        return canOutputTo(face) && takeFromContainer(aspect, amount) ? amount : 0;
     }
 
     @Override
-    public int addEssentia(Aspect addAspect, int var2, ForgeDirection face) {
-        if (face != ACCESS_FROM) {
-            return 0;
-        }
-        return 0;
+    public int addEssentia(Aspect aspect, int amount, ForgeDirection face) {
+        return canInputFrom(face) ? amount - addToContainer(aspect, amount) : 0;
     }
 
     @Override
     public Aspect getEssentiaType(ForgeDirection face) {
-        return face == ACCESS_FROM ? storedAspects.getAspects()[this.worldObj.rand.nextInt(storedAspects.getAspects().length)] : null;
+        return phials.randomStoredAspect(worldObj.rand);
     }
 
     @Override
     public int getEssentiaAmount(ForgeDirection face) {
-        return face == ACCESS_FROM ? storedAspects.visSize() : 0;
+        return face == ACCESS_FROM ? phials.totalAmountStored() : 0;
     }
 
     @Override
