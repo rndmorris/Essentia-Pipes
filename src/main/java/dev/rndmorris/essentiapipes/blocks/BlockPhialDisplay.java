@@ -55,13 +55,4 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
     {
         return worldIn.getBlock(x, y, z).isReplaceable(worldIn, x, y, z) && World.doesBlockHaveSolidTopSurface(worldIn, x, y - 1, z);
     }
-
-    @Override
-    public boolean onBlockActivated(World worldIn, int x, int y, int z, EntityPlayer player, int side, float subX, float subY, float subZ) {
-        // to-do update the contained tile entity
-        if (worldIn.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display) {
-            return display.onBlockActivated(player);
-        }
-        return super.onBlockActivated(worldIn, x, y, z, player, side, subX, subY, subZ);
-    }
 }

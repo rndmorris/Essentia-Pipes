@@ -1,20 +1,29 @@
 package dev.rndmorris.essentiapipes.tile;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.ForgeDirection;
 import thaumcraft.api.ItemApi;
 import thaumcraft.api.TileThaumcraft;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.AspectList;
 import thaumcraft.api.aspects.IAspectContainer;
+import thaumcraft.api.aspects.IEssentiaTransport;
 import thaumcraft.common.items.ItemEssence;
 
-public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectContainer {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectContainer, IEssentiaTransport {
 
     public static final String ID = "PhialDisplay";
-    public static final int MAX_PHIALS = 4;
+    public static final ForgeDirection ACCESS_FROM = ForgeDirection.UP;
+    public static final byte MAX_ASPECTS = 4;
+    public static final byte MAX_PHIALS = 4;
+    public static final byte MAX_VIS = 32;
+
+    public static final String PHIAL_COUNT = "phialCount";
 
     private static ItemEssence itemEssence;
 
@@ -26,46 +35,65 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     }
 
     private AspectList storedAspects = new AspectList();
-    private int phialCount = 0;
+    private byte phialCount = 0;
 
     public TileEntityPhialDisplay() {
 
     }
 
-    public boolean onBlockActivated(EntityPlayer player) {
-        var itemStack = player.getHeldItem();
-        if (!isPhial(itemStack)) {
-            return false;
-        }
-
-        if (player.isSneaking()) {
-            return addPhial(player, itemStack);
-        }
-        return false;
-//        else {
-//            return addEssentiaFromPhial(player);
-//        }
+    public byte remainingPhialCapacity() {
+        return (byte)(MAX_PHIALS - phialCount);
     }
 
-    private boolean isPhial(ItemStack itemStack) {
+    private boolean notPhial(ItemStack itemStack) {
+        if (itemStack == null) {
+            return true;
+        }
+        if (itemStack.getItem() != itemEssence()) {
+            return true;
+        }
         final var dmg = itemStack.getItemDamage();
-        return itemStack.getItem() == itemEssence() && (dmg == 0 || dmg == 1);
+        return !(dmg == 0 || dmg == 1);
     }
 
-    private boolean addPhial(EntityPlayer player, ItemStack itemStack) {
-        if (phialCount >= MAX_PHIALS || itemStack.getItemDamage() != 0) {
-            return false;
+    public void addPhial(EntityPlayer player, ItemStack itemStack) {
+        if (notPhial(itemStack) || phialCount >= MAX_PHIALS) {
+            return;
         }
-        if (worldObj.isRemote) {
-            player.swingItem();
-            return false;
+
+        final var itemAspects = itemEssence().getAspects(itemStack);
+        if (itemAspects != null) {
+            final var aspectEntry = itemAspects.aspects.entrySet().iterator().next();
+            addEssentia(aspectEntry.getKey(), aspectEntry.getValue(), ACCESS_FROM);
         }
 
         phialCount += 1;
-        itemStack.stackSize--;
-        player.inventoryContainer.detectAndSendChanges();
+        if (!player.capabilities.isCreativeMode) {
+            itemStack.stackSize--;
+            player.inventoryContainer.detectAndSendChanges();
+        }
+        markDirty();
+    }
 
-        return true;
+    public void addEssentia(EntityPlayer player, ItemStack itemStack) {
+        if (notPhial(itemStack)) {
+            return;
+        }
+        final var itemAspects = itemEssence().getAspects(itemStack);
+        if (itemAspects == null) {
+            return;
+        }
+        final var aspectEntry = itemAspects.aspects.entrySet().iterator().next();
+        final var addAspect = aspectEntry.getKey();
+        final var addAmount = aspectEntry.getValue();
+
+        final var amountAdded = addEssentia(addAspect, addAmount, ACCESS_FROM);
+        // to-do: handle leftovers
+
+        if (!player.capabilities.isCreativeMode && amountAdded > 0) {
+            itemStack.stackSize--;
+            player.inventoryContainer.detectAndSendChanges();
+        }
     }
 
     //
@@ -73,15 +101,17 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     //
 
     @Override
-    public void readFromNBT(NBTTagCompound nbttagcompound) {
-        super.readFromNBT(nbttagcompound);
-        storedAspects.writeToNBT(nbttagcompound);
+    public void readCustomNBT(NBTTagCompound nbttagcompound) {
+        storedAspects.readFromNBT(nbttagcompound);
+        if (nbttagcompound.hasKey(PHIAL_COUNT)) {
+            phialCount = nbttagcompound.getByte(PHIAL_COUNT);
+        }
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbttagcompound) {
-        super.readFromNBT(nbttagcompound);
+    public void writeCustomNBT(NBTTagCompound nbttagcompound) {
         storedAspects.writeToNBT(nbttagcompound);
+        nbttagcompound.setByte(PHIAL_COUNT, phialCount);
     }
 
     //
@@ -133,4 +163,70 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         return 0;
     }
 
+    //
+    // IEssentiaTransport
+    //
+
+    @Override
+    public boolean isConnectable(ForgeDirection face) {
+        return face == ACCESS_FROM;
+    }
+
+    @Override
+    public boolean canInputFrom(ForgeDirection face) {
+        return face == ACCESS_FROM;
+    }
+
+    @Override
+    public boolean canOutputTo(ForgeDirection face) {
+        return face == ACCESS_FROM;
+    }
+
+    @Override
+    public void setSuction(Aspect var1, int var2) {
+
+    }
+
+    @Override
+    public Aspect getSuctionType(ForgeDirection var1) {
+        return null;
+    }
+
+    @Override
+    public int getSuctionAmount(ForgeDirection var1) {
+        return storedAspects.visSize() < MAX_VIS ? 1 : 0;
+    }
+
+    @Override
+    public int takeEssentia(Aspect var1, int var2, ForgeDirection var3) {
+        return 0;
+    }
+
+    @Override
+    public int addEssentia(Aspect addAspect, int var2, ForgeDirection face) {
+        if (face != ACCESS_FROM) {
+            return 0;
+        }
+        return 0;
+    }
+
+    @Override
+    public Aspect getEssentiaType(ForgeDirection face) {
+        return face == ACCESS_FROM ? storedAspects.getAspects()[this.worldObj.rand.nextInt(storedAspects.getAspects().length)] : null;
+    }
+
+    @Override
+    public int getEssentiaAmount(ForgeDirection face) {
+        return face == ACCESS_FROM ? storedAspects.visSize() : 0;
+    }
+
+    @Override
+    public int getMinimumSuction() {
+        return 1;
+    }
+
+    @Override
+    public boolean renderExtendedTube() {
+        return false;
+    }
 }
