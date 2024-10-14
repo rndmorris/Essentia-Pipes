@@ -1,6 +1,7 @@
 package dev.rndmorris.essentiapipes;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import dev.rndmorris.essentiapipes.client.BlockPhialDisplayRenderer;
 import dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer;
 import dev.rndmorris.essentiapipes.client.CreativeTab;
 
@@ -23,6 +24,7 @@ public class ClientProxy extends CommonProxy {
 
     private void registerBlockRenderers() {
         BlockPipeSegmentRenderer.init();
+        BlockPhialDisplayRenderer.init();
     }
 
     @Override
