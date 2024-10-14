@@ -15,6 +15,8 @@ import net.minecraft.world.World;
 import cpw.mods.fml.common.registry.GameRegistry;
 import dev.rndmorris.essentiapipes.EssentiaPipes;
 import dev.rndmorris.essentiapipes.client.BlockPhialDisplayRenderer;
+import dev.rndmorris.essentiapipes.data.BlockBounds;
+import dev.rndmorris.essentiapipes.items.ItemBlockPhialDisplay;
 import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import thaumcraft.common.blocks.CustomStepSound;
 
@@ -27,7 +29,7 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
     public static void preInit() {
         instance = new BlockPhialDisplay();
         instance.setBlockName(EssentiaPipes.modid(ID));
-        GameRegistry.registerBlock(instance, ID);
+        GameRegistry.registerBlock(instance, ItemBlockPhialDisplay.class, ID);
 
         GameRegistry.registerTileEntity(TileEntityPhialDisplay.class, TileEntityPhialDisplay.ID);
     }
@@ -42,6 +44,7 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
         public IIcon jarSide;
         public IIcon jarTop;
         public IIcon liquid;
+        public IIcon phial;
     }
 
     public final Icons icons = new Icons();
@@ -121,10 +124,15 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
         icons.jarBottom = reg.registerIcon("thaumcraft:jar_bottom");
         icons.jarSide = reg.registerIcon("thaumcraft:jar_side");
         icons.jarTop = reg.registerIcon("thaumcraft:jar_top");
+        icons.phial = reg.registerIcon("thaumcraft:phial");
     }
 
     @Override
     public boolean renderAsNormalBlock() {
         return false;
+    }
+
+    public void setBlockBounds(BlockBounds b) {
+        super.setBlockBounds(b.minX, b.minY, b.minZ, b.maxX, b.maxY, b.maxZ);
     }
 }

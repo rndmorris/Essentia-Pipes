@@ -1,10 +1,11 @@
 package dev.rndmorris.essentiapipes.tile;
 
-import dev.rndmorris.essentiapipes.data.StoragePhialSet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import dev.rndmorris.essentiapipes.data.StoragePhialSet;
 import thaumcraft.api.ItemApi;
 import thaumcraft.api.TileThaumcraft;
 import thaumcraft.api.aspects.Aspect;
@@ -15,18 +16,21 @@ import thaumcraft.common.items.ItemEssence;
 
 public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectContainer, IEssentiaTransport {
 
-    public static final String ID = "PhialDisplay";
     public static final ForgeDirection ACCESS_FROM = ForgeDirection.UP;
+    public static final String ID = "PhialDisplay";
+    public static final byte MAX_PHIALS = 4;
 
     private static ItemEssence itemEssence;
+
     private static ItemEssence itemEssence() {
         if (itemEssence == null) {
-            itemEssence = (ItemEssence) ItemApi.getItem("itemEssence", 0).getItem();
+            itemEssence = (ItemEssence) ItemApi.getItem("itemEssence", 0)
+                .getItem();
         }
         return itemEssence;
     }
 
-    private final StoragePhialSet phials = new StoragePhialSet(4);
+    private final StoragePhialSet phials = new StoragePhialSet(MAX_PHIALS);
 
     public TileEntityPhialDisplay() {
 
@@ -58,7 +62,9 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         phials.addPhial();
         final var itemAspects = itemEssence().getAspects(itemStack);
         if (itemAspects != null) {
-            final var aspectEntry = itemAspects.aspects.entrySet().iterator().next();
+            final var aspectEntry = itemAspects.aspects.entrySet()
+                .iterator()
+                .next();
             addEssentia(aspectEntry.getKey(), aspectEntry.getValue(), ACCESS_FROM);
         }
 
@@ -77,7 +83,9 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         if (itemAspects == null) {
             return;
         }
-        final var aspectEntry = itemAspects.aspects.entrySet().iterator().next();
+        final var aspectEntry = itemAspects.aspects.entrySet()
+            .iterator()
+            .next();
         final var addAspect = aspectEntry.getKey();
         final var addAmount = aspectEntry.getValue();
 
@@ -88,6 +96,10 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
             itemStack.stackSize--;
             player.inventoryContainer.detectAndSendChanges();
         }
+    }
+
+    public int getLightValue() {
+        return (int) (15 * ((float) phials.totalAmountStored() / (MAX_PHIALS * 8F)));
     }
 
     //
@@ -114,7 +126,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     }
 
     @Override
-    public void setAspects(AspectList aspects) { }
+    public void setAspects(AspectList aspects) {}
 
     @Override
     public boolean doesContainerAccept(Aspect aspect) {
@@ -126,7 +138,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         if (amount == 0) {
             return amount;
         }
-        final var leftover =  phials.addEssentia(aspect, amount);
+        final var leftover = phials.addEssentia(aspect, amount);
         worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
         markDirty();
         return leftover;
