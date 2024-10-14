@@ -1,12 +1,14 @@
 package dev.rndmorris.essentiapipes.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import thaumcraft.api.aspects.Aspect;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.nbt.NBTTagCompound;
+
+import thaumcraft.api.aspects.Aspect;
+
 public class StoragePhial implements Comparable<StoragePhial> {
+
     public static final byte MAX_AMOUNT = 8;
 
     private byte amount;
@@ -22,6 +24,7 @@ public class StoragePhial implements Comparable<StoragePhial> {
 
     /**
      * Add essentia to the phial
+     * 
      * @param aspect The aspect to add
      * @param amount The amount to add
      * @return The amount of leftover essentia (anything not added)
@@ -33,7 +36,7 @@ public class StoragePhial implements Comparable<StoragePhial> {
         this.aspect = aspect;
         final var added = (byte) Math.min(MAX_AMOUNT - this.amount, amount);
         this.amount += added;
-        return (byte)(amount - added);
+        return (byte) (amount - added);
     }
 
     public boolean acceptsAspect(@Nonnull Aspect aspect) {
@@ -50,6 +53,7 @@ public class StoragePhial implements Comparable<StoragePhial> {
 
     /**
      * Take essentia from the phial
+     * 
      * @param aspect The aspect to take
      * @param amount The amount to take
      * @return The amount of essentia taken

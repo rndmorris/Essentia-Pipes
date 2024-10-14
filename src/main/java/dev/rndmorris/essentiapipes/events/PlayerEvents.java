@@ -1,20 +1,19 @@
 package dev.rndmorris.essentiapipes.events;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import dev.rndmorris.essentiapipes.EssentiaPipes;
-import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
-import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
+import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import thaumcraft.api.ItemApi;
 
 public class PlayerEvents {
 
     private static PlayerEvents instance;
-
 
     public static void preInit() {
         instance = new PlayerEvents();
@@ -47,7 +46,8 @@ public class PlayerEvents {
 
     private boolean isPhial(ItemStack stack) {
         if (itemEssence == null) {
-            itemEssence = ItemApi.getItem("itemEssence", 0).getItem();
+            itemEssence = ItemApi.getItem("itemEssence", 0)
+                .getItem();
         }
         if (stack == null) {
             return false;
@@ -59,8 +59,7 @@ public class PlayerEvents {
     private void phialDisplayInteractions(PlayerInteractEvent event) {
         if (event.entityPlayer.isSneaking()) {
             placePhial(event);
-        }
-        else {
+        } else {
             addEssenitaFromPhial(event);
         }
     }
@@ -73,11 +72,11 @@ public class PlayerEvents {
         if (face == ForgeDirection.UNKNOWN) {
             return;
         }
-        int x = event.x,
-            y = event.y,
-            z = event.z;
+        int x = event.x, y = event.y, z = event.z;
 
-        if (!(world.getBlock(x, y, z) == block() && world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display && display.remainingPhialCapacity() > 0)) {
+        if (!(world.getBlock(x, y, z) == block()
+            && world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display
+            && display.remainingPhialCapacity() > 0)) {
             x = event.x + face.offsetX;
             y = event.y + face.offsetY;
             z = event.z + face.offsetZ;
@@ -99,9 +98,7 @@ public class PlayerEvents {
     }
 
     private void addEssenitaFromPhial(PlayerInteractEvent event) {
-        int x = event.x,
-            y = event.y,
-            z = event.z;
+        int x = event.x, y = event.y, z = event.z;
         final var tileEntity = event.world.getTileEntity(x, y, z);
         if (tileEntity instanceof TileEntityPhialDisplay display) {
             display.addEssentia(event.entityPlayer, event.entityPlayer.getHeldItem());

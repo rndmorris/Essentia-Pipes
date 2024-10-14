@@ -2,6 +2,7 @@ package dev.rndmorris.essentiapipes;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,10 +50,10 @@ public class EssentiaPipes {
 
     public static void pause() {
         try {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiChat());
+            Minecraft.getMinecraft()
+                .displayGuiScreen(new GuiChat());
             Thread.sleep(500);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ;
         }
     }

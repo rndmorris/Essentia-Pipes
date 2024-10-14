@@ -1,16 +1,18 @@
 package dev.rndmorris.essentiapipes.data;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import thaumcraft.api.aspects.Aspect;
-import thaumcraft.api.aspects.AspectList;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeSet;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.api.aspects.AspectList;
 
 public class StoragePhialSet {
 
@@ -40,12 +42,13 @@ public class StoragePhialSet {
 
     public Aspect randomStoredAspect(Random rand) {
         final var nonEmptyPhials = new ArrayList<StoragePhial>(maxPhials);
-        for (var phial: phials) {
+        for (var phial : phials) {
             if (phial.getAmount() > 0) {
                 nonEmptyPhials.add(phial);
             }
         }
-        return nonEmptyPhials.get(rand.nextInt(nonEmptyPhials.size())).getAspect();
+        return nonEmptyPhials.get(rand.nextInt(nonEmptyPhials.size()))
+            .getAspect();
     }
 
     public int remainingPhialCapacity() {
@@ -90,6 +93,7 @@ public class StoragePhialSet {
 
     /**
      * Add essentia to the phial set
+     * 
      * @param aspect The aspect to add
      * @param amount The amount to add
      * @return The amount of leftover essentia (anything not added)
@@ -112,6 +116,7 @@ public class StoragePhialSet {
 
     /**
      * Take essenttia from the phial set
+     * 
      * @param aspect The aspect to take
      * @param amount The amount to take
      * @return The amount of essentia taken
