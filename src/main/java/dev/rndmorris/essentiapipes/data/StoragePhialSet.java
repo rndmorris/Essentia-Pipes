@@ -40,6 +40,10 @@ public class StoragePhialSet {
         return true;
     }
 
+    public int count() {
+        return phials.size();
+    }
+
     public Aspect randomStoredAspect(Random rand) {
         final var nonEmptyPhials = new ArrayList<StoragePhial>(maxPhials);
         for (var phial : phials) {
@@ -93,7 +97,7 @@ public class StoragePhialSet {
 
     /**
      * Add essentia to the phial set
-     * 
+     *
      * @param aspect The aspect to add
      * @param amount The amount to add
      * @return The amount of leftover essentia (anything not added)
@@ -116,7 +120,7 @@ public class StoragePhialSet {
 
     /**
      * Take essenttia from the phial set
-     * 
+     *
      * @param aspect The aspect to take
      * @param amount The amount to take
      * @return The amount of essentia taken

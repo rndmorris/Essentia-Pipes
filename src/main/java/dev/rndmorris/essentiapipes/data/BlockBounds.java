@@ -11,6 +11,10 @@ public class BlockBounds implements Cloneable {
     public final float maxY;
     public final float maxZ;
 
+    public BlockBounds(float maxX, float maxY, float maxZ) {
+        this(0, 0, 0, maxX, maxY, maxZ);
+    }
+
     public BlockBounds(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
         this.minX = minX;
         this.minY = minY;

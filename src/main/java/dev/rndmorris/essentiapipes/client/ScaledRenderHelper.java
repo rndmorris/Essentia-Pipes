@@ -2,6 +2,7 @@ package dev.rndmorris.essentiapipes.client;
 
 import static net.minecraft.client.renderer.RenderBlocks.fancyGrass;
 
+import dev.rndmorris.essentiapipes.data.BlockBounds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.client.Minecraft;
@@ -14,7 +15,62 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 public class ScaledRenderHelper {
 
-    public static final float[][] UVSideOverrides = new float[ForgeDirection.VALID_DIRECTIONS.length][];
+    public final static Overrides UV_OVERRIDES = new Overrides();
+
+    public static class Overrides {
+
+        public final Override negX = new Override();
+        public final Override posX = new Override();
+        public final Override negY = new Override();
+        public final Override posY = new Override();
+        public final Override negZ = new Override();
+        public final Override posZ = new Override();
+
+        public static class Override {
+            public double minU = 0;
+            public double maxU = 16;
+            public double minV = 0;
+            public double maxV = 16;
+
+            public void reset() {
+                minU = 0;
+                maxU = 16;
+                minV = 0;
+                maxV = 16;
+            }
+
+            public void update(IUpdater updater) {
+                updater.update(this);
+            }
+
+            public interface IUpdater {
+
+                void update(Override override);
+            }
+        }
+
+        public void update(IUpdater updater) {
+            updater.update(ForgeDirection.WEST, negX);
+            updater.update(ForgeDirection.EAST, posX);
+            updater.update(ForgeDirection.DOWN, negY);
+            updater.update(ForgeDirection.UP, posY);
+            updater.update(ForgeDirection.NORTH, negZ);
+            updater.update(ForgeDirection.SOUTH, posZ);
+        }
+
+        public interface IUpdater {
+            void update(ForgeDirection direction, Override override);
+        }
+
+        public void reset() {
+            negX.reset();
+            posX.reset();
+            negY.reset();
+            posY.reset();
+            negZ.reset();
+            posZ.reset();
+        }
+    }
 
     public static boolean renderStandardBlock(RenderBlocks renderer, Block blockType, int blockX, int blockY,
         int blockZ) {
@@ -2456,10 +2512,11 @@ public class ScaledRenderHelper {
             icon = renderer.overrideBlockTexture;
         }
 
-        double minU = icon.getInterpolatedU(0);
-        double maxU = icon.getInterpolatedU(16);
-        double minV = icon.getInterpolatedV(0);
-        double maxV = icon.getInterpolatedV(16);
+        final var over = UV_OVERRIDES.negY;
+        double minU = icon.getInterpolatedU(over.minU);
+        double maxU = icon.getInterpolatedU(over.maxU);
+        double minV = icon.getInterpolatedV(over.minV);
+        double maxV = icon.getInterpolatedV(over.maxV);
 
         if (renderer.renderMinX < 0.0D || renderer.renderMaxX > 1.0D) {
             minU = icon.getMinU();
@@ -2547,10 +2604,11 @@ public class ScaledRenderHelper {
             icon = renderer.overrideBlockTexture;
         }
 
-        double minU = icon.getInterpolatedU(0);
-        double maxU = icon.getInterpolatedU(16);
-        double minV = icon.getInterpolatedV(0);
-        double maxV = icon.getInterpolatedV(16);
+        final var over = UV_OVERRIDES.posY;
+        double minU = icon.getInterpolatedU(over.minU);
+        double maxU = icon.getInterpolatedU(over.maxU);
+        double minV = icon.getInterpolatedV(over.minV);
+        double maxV = icon.getInterpolatedV(over.maxV);
 
         if (renderer.renderMinX < 0.0D || renderer.renderMaxX > 1.0D) {
             minU = icon.getMinU();
@@ -2638,16 +2696,16 @@ public class ScaledRenderHelper {
             icon = renderer.overrideBlockTexture;
         }
 
-        double minU = icon.getInterpolatedU(0);
-        double maxU = icon.getInterpolatedU(16);
+        final var over = UV_OVERRIDES.negZ;
+        double minU = icon.getInterpolatedU(over.minU);
+        double maxU = icon.getInterpolatedU(over.maxU);
+        double minV = icon.getInterpolatedV(over.minV);
+        double maxV = icon.getInterpolatedV(over.maxV);
 
         if (renderer.field_152631_f) {
             maxU = icon.getInterpolatedU(0);
             minU = icon.getInterpolatedU(16);
         }
-
-        double minV = icon.getInterpolatedV(0);
-        double maxV = icon.getInterpolatedV(16);
 
         double topLeftU;
 
@@ -2743,10 +2801,11 @@ public class ScaledRenderHelper {
             icon = renderer.overrideBlockTexture;
         }
 
-        double minU = icon.getInterpolatedU(0);
-        double maxU = icon.getInterpolatedU(16);
-        double minV = icon.getInterpolatedV(0);
-        double maxV = icon.getInterpolatedV(16);
+        final var over = UV_OVERRIDES.posZ;
+        double minU = icon.getInterpolatedU(over.minU);
+        double maxU = icon.getInterpolatedU(over.maxU);
+        double minV = icon.getInterpolatedV(over.minV);
+        double maxV = icon.getInterpolatedV(over.maxV);
         double topRightU;
 
         if (renderer.flipTexture) {
@@ -2841,10 +2900,11 @@ public class ScaledRenderHelper {
             icon = renderer.overrideBlockTexture;
         }
 
-        double minU = icon.getInterpolatedU(0);
-        double maxU = icon.getInterpolatedU(16);
-        double minV = icon.getInterpolatedV(0);
-        double maxV = icon.getInterpolatedV(16);
+        final var over = UV_OVERRIDES.negX;
+        double minU = icon.getInterpolatedU(over.minU);
+        double maxU = icon.getInterpolatedU(over.maxU);
+        double minV = icon.getInterpolatedV(over.minV);
+        double maxV = icon.getInterpolatedV(over.maxV);
 
         double topLeftU;
 
@@ -2940,16 +3000,18 @@ public class ScaledRenderHelper {
             icon = renderer.overrideBlockTexture;
         }
 
-        double minU = icon.getInterpolatedU(0);
-        double maxU = icon.getInterpolatedU(16);
+        final var over = UV_OVERRIDES.posX;
+        double minU = icon.getInterpolatedU(over.minU);
+        double maxU = icon.getInterpolatedU(over.maxU);
+        double minV = icon.getInterpolatedV(over.minV);
+        double maxV = icon.getInterpolatedV(over.maxV);
 
         if (renderer.field_152631_f) {
             maxU = icon.getInterpolatedU(0);
             minU = icon.getInterpolatedU(16);
         }
 
-        double minV = icon.getInterpolatedV(0);
-        double maxV = icon.getInterpolatedV(16);
+
         double bottomRightU;
 
         if (renderer.flipTexture) {

@@ -36,6 +36,10 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     }
 
+    public StoragePhialSet getPhials() {
+        return phials;
+    }
+
     public byte remainingPhialCapacity() {
         return (byte) phials.remainingPhialCapacity();
     }
