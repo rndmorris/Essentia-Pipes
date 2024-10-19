@@ -77,6 +77,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
             player.inventoryContainer.detectAndSendChanges();
         }
         markDirty();
+        //worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
     }
 
     public void addEssentia(EntityPlayer player, ItemStack itemStack) {

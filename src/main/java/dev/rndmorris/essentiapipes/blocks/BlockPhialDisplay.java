@@ -23,6 +23,7 @@ import thaumcraft.common.blocks.CustomStepSound;
 public class BlockPhialDisplay extends Block implements ITileEntityProvider {
 
     public static final String ID = "phial_display";
+    public static final int MAX_METADATA = 4;
 
     private static BlockPhialDisplay instance;
 

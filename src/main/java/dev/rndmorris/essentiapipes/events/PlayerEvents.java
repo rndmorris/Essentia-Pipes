@@ -24,15 +24,7 @@ public class PlayerEvents {
         return instance;
     }
 
-    private BlockPhialDisplay block;
     private Item itemEssence;
-
-    private BlockPhialDisplay block() {
-        if (block == null) {
-            block = BlockPhialDisplay.getInstance();
-        }
-        return block;
-    }
 
     @SubscribeEvent
     public void onInteractEvent(PlayerInteractEvent event) {
@@ -65,6 +57,7 @@ public class PlayerEvents {
     }
 
     private void placePhial(PlayerInteractEvent event) {
+        final var block = BlockPhialDisplay.getInstance();
         final var player = event.entityPlayer;
         final var world = event.world;
         final var face = ForgeDirection.getOrientation(event.face);
@@ -72,28 +65,39 @@ public class PlayerEvents {
         if (face == ForgeDirection.UNKNOWN) {
             return;
         }
-        int x = event.x, y = event.y, z = event.z;
 
-        if (!(world.getBlock(x, y, z) == block()
-            && world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display
-            && display.remainingPhialCapacity() > 0)) {
-            x = event.x + face.offsetX;
-            y = event.y + face.offsetY;
-            z = event.z + face.offsetZ;
-            if (!block().canPlaceBlockAt(world, x, y, z)) {
-                return;
+        var placed = false;
+        var x = event.x;
+        var y = event.y;
+        var z = event.z;
+        var metadata = world.getBlockMetadata(x, y, z);
+
+        if (world.getBlock(x, y, z) == block && metadata < BlockPhialDisplay.MAX_METADATA) {
+            // add a phial to an existing block
+            world.setBlockMetadataWithNotify(x, y, z, metadata + 1, 1 & 2);
+            world.markBlockRangeForRenderUpdate(x, y, z, x, y, z);
+            placed = true;
+        }
+        else {
+            x = x + face.offsetX;
+            y = y + face.offsetY;
+            z = z + face.offsetZ;
+            if (block.canPlaceBlockAt(world, x, y, z)) {
+                // place a new block
+                world.setBlock(x, y, z, block, 1, 1 & 2);
+                world.markBlockRangeForRenderUpdate(x, y, z, x, y, z);
+                placed = true;
             }
-            world.setBlock(x, y, z, block());
         }
 
-        if (world.isRemote) {
-            player.swingItem();
-            return;
-        }
-
-        final var tileEntity = world.getTileEntity(x, y, z);
-        if (tileEntity instanceof TileEntityPhialDisplay display) {
-            display.addPhial(player, player.getHeldItem());
+        if (placed) {
+            if (!player.capabilities.isCreativeMode) {
+                player.getHeldItem().stackSize -= 1;
+                player.inventoryContainer.detectAndSendChanges();
+            }
+            if (world.isRemote) {
+                player.swingItem();
+            }
         }
     }
 

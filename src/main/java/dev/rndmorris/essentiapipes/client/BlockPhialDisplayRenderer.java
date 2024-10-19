@@ -15,7 +15,7 @@ import thaumcraft.client.renderers.block.BlockRenderer;
 public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
 
     public static int renderId;
-    public static BlockPhialDisplayRenderer instance = new BlockPhialDisplayRenderer();
+    public static BlockPhialDisplayRenderer instance;
 
     public static float pixels(float count) {
         return count / 16F;
@@ -95,20 +95,13 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
 
         ScaledRenderHelper.UV_OVERRIDES.update(BlockPhialDisplayRenderer::trimTextureForGlass);
 
-        if (!(world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display)) {
-            return false;
-        }
+        final var metadata = world.getBlockMetadata(x, y, z);
 
-        for (var phialIndex = 0; phialIndex < display.getPhials().count() && phialIndex < positionedPhialBounds.length; ++phialIndex) {
+        for (var phialIndex = 0; phialIndex < metadata && phialIndex < positionedPhialBounds.length; ++phialIndex) {
             block.setBlockBounds(positionedPhialBounds[phialIndex]);
             renderer.setRenderBoundsFromBlock(block);
             ScaledRenderHelper.renderStandardBlock(renderer, block, x, y, z);
         }
-
-//        ScaledRenderHelper.UV_OVERRIDES.update(BlockPhialDisplayRenderer::trimTextureForLid);
-//        block.setBlockBounds(lidBounds);
-//        renderer.setRenderBoundsFromBlock(block);
-//        ScaledRenderHelper.renderStandardBlock(renderer, block, x, y, z);
 
         block.setBlockBounds(BlockBounds.UNIT);
         renderer.setRenderBoundsFromBlock(block);
