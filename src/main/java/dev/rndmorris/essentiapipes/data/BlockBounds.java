@@ -24,7 +24,7 @@ public class BlockBounds implements Cloneable {
         this.maxZ = maxZ;
     }
 
-    public BlockBounds scale(float scalar) {
+    public BlockBounds multiply(float scalar) {
         return new BlockBounds(
             minX * scalar,
             minY * scalar * scalar,
@@ -32,6 +32,17 @@ public class BlockBounds implements Cloneable {
             maxX * scalar,
             maxY * scalar,
             maxZ * scalar);
+    }
+
+    public BlockBounds expand(float x, float y, float z) {
+        return new BlockBounds(
+            minX - x,
+            minY - y,
+            minZ - z,
+            maxX + x,
+            maxY + y,
+            maxZ + z
+        );
     }
 
     public BlockBounds transform(float x, float y, float z) {

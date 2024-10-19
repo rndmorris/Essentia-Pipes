@@ -25,6 +25,10 @@ public class StoragePhialSet {
         this.phials = new StoragePhial[maxPhials];
     }
 
+    public StoragePhial[] getPhials() {
+        return this.phials;
+    }
+
     public void expandTo(int newCapacity) {
         final var expandTo = Integer.min(maxPhials, newCapacity);
         while (phialCount < expandTo) {

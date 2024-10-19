@@ -1,6 +1,5 @@
 package dev.rndmorris.essentiapipes.client;
 
-import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;
@@ -20,17 +19,15 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
     public static float pixels(float count) {
         return count / 16F;
     }
-    // 3 0 3 / 13 12 13
+
     private static final float inset = 2F / 16F;
-    public static final BlockBounds phialBounds = new BlockBounds(pixels(10), pixels(12), pixels(10)).scale(1F / 2F);//.transform(pixels(3), 0, pixels(3));
+    public static final BlockBounds phialBounds = new BlockBounds(pixels(10), pixels(12), pixels(10)).multiply(1F / 2F);//.transform(pixels(3), 0, pixels(3));
     public static final BlockBounds[] positionedPhialBounds = new BlockBounds[] {
         phialBounds.transform(inset, 0, inset),
         phialBounds.transform(inset, 0, 1 - phialBounds.maxZ - inset),
         phialBounds.transform(1 - phialBounds.maxX - inset, 0, inset),
         phialBounds.transform(1 - phialBounds.maxX - inset, 0, 1 - phialBounds.maxZ - inset),
     };
-    // 5 12 5 / 11 14 11
-    // public static final BlockBounds lidBounds = new BlockBounds(pixels(6), pixels(2), pixels(6)).scale(.25F).transform(pixels(5), pixels(12), pixels(5)).transform(glassBounds.minX, glassBounds.maxY, glassBounds.minZ);
 
     public static void init() {
         renderId = RenderingRegistry.getNextAvailableRenderId();

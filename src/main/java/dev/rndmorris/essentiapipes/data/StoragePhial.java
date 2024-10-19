@@ -74,6 +74,10 @@ public class StoragePhial implements Comparable<StoragePhial> {
         return !isFull();
     }
 
+    public float getPercentFull() {
+        return (float) amount / (float) MAX_AMOUNT;
+    }
+
     /**
      * Take essentia from the phial
      *
