@@ -1,5 +1,6 @@
 package dev.rndmorris.essentiapipes.events;
 
+import dev.rndmorris.essentiapipes.EssentiaPipes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -10,6 +11,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
 import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import thaumcraft.api.ItemApi;
+import thaumcraft.common.items.ItemEssence;
 
 public class PlayerEvents {
 
@@ -24,10 +26,15 @@ public class PlayerEvents {
         return instance;
     }
 
-    private Item itemEssence;
+    private ItemEssence itemEssence;
 
     @SubscribeEvent
     public void onInteractEvent(PlayerInteractEvent event) {
+        if (itemEssence == null) {
+            itemEssence = (ItemEssence) ItemApi.getItem("itemEssence", 0)
+                .getItem();
+        }
+
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             return;
         }
@@ -37,10 +44,6 @@ public class PlayerEvents {
     }
 
     private boolean isPhial(ItemStack stack) {
-        if (itemEssence == null) {
-            itemEssence = ItemApi.getItem("itemEssence", 0)
-                .getItem();
-        }
         if (stack == null) {
             return false;
         }
@@ -90,14 +93,15 @@ public class PlayerEvents {
             }
         }
 
-        if (placed) {
-            if (!player.capabilities.isCreativeMode) {
-                player.getHeldItem().stackSize -= 1;
-                player.inventoryContainer.detectAndSendChanges();
-            }
-            if (world.isRemote) {
-                player.swingItem();
-            }
+        if (!placed) {
+            return;
+        }
+
+        var tileEntity = (TileEntityPhialDisplay) world.getTileEntity(x, y, z);
+        tileEntity.addEssentia(player, player.getHeldItem());
+
+        if (world.isRemote) {
+            player.swingItem();
         }
     }
 

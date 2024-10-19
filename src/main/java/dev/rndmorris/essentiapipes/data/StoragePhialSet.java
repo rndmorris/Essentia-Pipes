@@ -17,22 +17,37 @@ import thaumcraft.api.aspects.AspectList;
 public class StoragePhialSet {
 
     private final int maxPhials;
-    private final List<StoragePhial> phials;
+    private int phialCount = 0;
+    private final StoragePhial[] phials;
 
     public StoragePhialSet(int maxPhials) {
         this.maxPhials = maxPhials;
-        this.phials = new ArrayList<>(maxPhials);
+        this.phials = new StoragePhial[maxPhials];
     }
 
-    public void addPhial() {
-        if (phials.size() >= maxPhials) {
-            return;
+    public void expandTo(int newCapacity) {
+        final var expandTo = Integer.min(maxPhials, newCapacity);
+        while (phialCount < expandTo) {
+            addPhial();
         }
-        phials.add(new StoragePhial());
+    }
+
+    public boolean addPhial() {
+        for (var index = 0; index < phials.length; ++index) {
+            if (phials[index] == null) {
+                phials[index] = new StoragePhial();
+                phialCount += 1;
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean allPhialsFull() {
         for (var phial : phials) {
+            if (phial == null) {
+                continue;
+            }
             if (phial.isNotFull()) {
                 return false;
             }
@@ -40,13 +55,12 @@ public class StoragePhialSet {
         return true;
     }
 
-    public int count() {
-        return phials.size();
-    }
-
     public Aspect randomStoredAspect(Random rand) {
         final var nonEmptyPhials = new ArrayList<StoragePhial>(maxPhials);
         for (var phial : phials) {
+            if (phial == null) {
+                continue;
+            }
             if (phial.getAmount() > 0) {
                 nonEmptyPhials.add(phial);
             }
@@ -56,7 +70,7 @@ public class StoragePhialSet {
     }
 
     public int remainingPhialCapacity() {
-        return maxPhials - phials.size();
+        return maxPhials - phialCount;
     }
 
     public int totalAmountStored() {
@@ -66,6 +80,9 @@ public class StoragePhialSet {
     public int totalAmountStored(@Nullable Aspect aspect) {
         var result = 0;
         for (var phial : phials) {
+            if (phial == null) {
+                continue;
+            }
             if (aspect == null || aspect == phial.getAspect()) {
                 result += phial.getAmount();
             }
@@ -76,6 +93,9 @@ public class StoragePhialSet {
     public AspectList toAspectList() {
         final var result = new AspectList();
         for (var phial : phials) {
+            if (phial == null) {
+                continue;
+            }
             if (phial.getAmount() > 0) {
                 result.add(phial.getAspect(), phial.getAmount());
             }
@@ -105,6 +125,9 @@ public class StoragePhialSet {
     public int addEssentia(@Nonnull Aspect aspect, int amount) {
         final var addToPhials = new TreeSet<StoragePhial>();
         for (var phial : phials) {
+            if (phial == null) {
+                continue;
+            }
             if (phial.isNotFull() && phial.acceptsAspect(aspect)) {
                 addToPhials.add(phial);
             }
@@ -129,6 +152,9 @@ public class StoragePhialSet {
         final var takeFromPhials = new TreeSet<StoragePhial>();
         final var takeAspect = aspect != null ? aspect : lowestStoredAspect();
         for (var phial : phials) {
+            if (phial == null) {
+                continue;
+            }
             if (phial.getAspect() == takeAspect && phial.getAmount() > 0) {
                 takeFromPhials.add(phial);
             }
@@ -157,13 +183,11 @@ public class StoragePhialSet {
     }
 
     public void readFromNBT(NBTTagCompound nbtTagCompound) {
-        phials.clear();
         final var tagList = nbtTagCompound.getTagList("PhialAspects", 10);
-        for (var index = 0; index < tagList.tagCount() && phials.size() < maxPhials; ++index) {
-            final var newPhial = new StoragePhial();
+        for (var index = 0; index < tagList.tagCount(); ++index) {
+            final var phial = phials[index];
             final var phialTag = tagList.getCompoundTagAt(index);
-            newPhial.readFromNBT(phialTag);
-            phials.add(newPhial);
+            phials[index] = StoragePhial.readFromNBT(phial, phialTag);
         }
     }
 
@@ -172,7 +196,7 @@ public class StoragePhialSet {
 
         for (var phial : phials) {
             final var phialTag = new NBTTagCompound();
-            phial.writeToNBT(phialTag);
+            StoragePhial.writeToNbt(phial, phialTag);
             tagList.appendTag(phialTag);
         }
 

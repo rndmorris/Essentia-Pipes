@@ -1,5 +1,6 @@
 package dev.rndmorris.essentiapipes.tile;
 
+import dev.rndmorris.essentiapipes.EssentiaPipes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -55,31 +56,6 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         return !(dmg == 0 || dmg == 1);
     }
 
-    public void addPhial(EntityPlayer player, ItemStack itemStack) {
-        if (notPhial(itemStack)) {
-            return;
-        }
-        if (phials.remainingPhialCapacity() <= 0) {
-            return;
-        }
-
-        phials.addPhial();
-        final var itemAspects = itemEssence().getAspects(itemStack);
-        if (itemAspects != null) {
-            final var aspectEntry = itemAspects.aspects.entrySet()
-                .iterator()
-                .next();
-            addEssentia(aspectEntry.getKey(), aspectEntry.getValue(), ACCESS_FROM);
-        }
-
-        if (!player.capabilities.isCreativeMode) {
-            itemStack.stackSize--;
-            player.inventoryContainer.detectAndSendChanges();
-        }
-        markDirty();
-        //worldObj.markBlockRangeForRenderUpdate(xCoord, yCoord, zCoord, xCoord, yCoord, zCoord);
-    }
-
     public void addEssentia(EntityPlayer player, ItemStack itemStack) {
         if (notPhial(itemStack)) {
             return;
@@ -114,6 +90,12 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     @Override
     public void readCustomNBT(NBTTagCompound nbttagcompound) {
         phials.readFromNBT(nbttagcompound);
+    }
+
+    @Override
+    public void updateContainingBlockInfo() {
+        super.updateContainingBlockInfo();
+        phials.expandTo(getBlockMetadata());
     }
 
     @Override
