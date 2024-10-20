@@ -1,7 +1,5 @@
 package dev.rndmorris.essentiapipes.tile;
 
-import dev.rndmorris.essentiapipes.EssentiaPipes;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -51,7 +49,11 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         }
     }
 
-    public StoragePhialSet getPhials() {
+    public boolean canAddPhial() {
+        return phials.canAddPhial();
+    }
+
+    public StoragePhialSet getPhialSet() {
         return phials;
     }
 
@@ -66,27 +68,26 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         return !(dmg == 0 || dmg == 1);
     }
 
-    public void addEssentia(EntityPlayer player, ItemStack itemStack) {
-        if (notPhial(itemStack)) {
-            return;
+    public boolean addPhial(ItemStack heldItem) {
+        if (notPhial(heldItem) || !canAddPhial()) {
+            return false;
         }
-        final var itemAspects = itemEssence().getAspects(itemStack);
-        if (itemAspects == null) {
-            return;
-        }
-        final var aspectEntry = itemAspects.aspects.entrySet()
-            .iterator()
-            .next();
-        final var addAspect = aspectEntry.getKey();
-        final var addAmount = aspectEntry.getValue();
+        final var aspects = itemEssence().getAspects(heldItem);
 
-        final var leftovers = phials.addEssentia(addAspect, addAmount);
-        // to-do: handle leftovers
-
-        if (!player.capabilities.isCreativeMode && leftovers != addAmount) {
-            itemStack.stackSize--;
-            player.inventoryContainer.detectAndSendChanges();
+        if (aspects != null && aspects.visSize() > 0) {
+            final var kv = aspects.aspects.entrySet().iterator().next();
+            final var result = phials.addPhial(kv.getKey(), kv.getValue());
+            if (result) {
+                markDirty();
+            }
+            return result;
         }
+
+        final var result = phials.addPhial();
+        if (result) {
+            markDirty();
+        }
+        return result;
     }
 
     public int getLightValue() {
@@ -101,12 +102,6 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     public void readCustomNBT(NBTTagCompound nbttagcompound) {
         phials.readFromNBT(nbttagcompound);
         hasTube = nbttagcompound.getBoolean(HAS_TUBE);
-    }
-
-    @Override
-    public void updateContainingBlockInfo() {
-        super.updateContainingBlockInfo();
-        phials.expandTo(getBlockMetadata());
     }
 
     @Override

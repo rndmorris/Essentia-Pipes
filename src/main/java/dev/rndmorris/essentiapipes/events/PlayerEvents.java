@@ -1,6 +1,7 @@
 package dev.rndmorris.essentiapipes.events;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import dev.rndmorris.essentiapipes.EssentiaPipes;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -70,14 +71,13 @@ public class PlayerEvents {
     private void addPhialToPhialDisplay(PlayerInteractEvent event) {
         if (event.entityPlayer.isSneaking()) {
             placePhial(event);
-        } else {
-            addEssenitaFromPhial(event);
         }
     }
 
     private void placePhial(PlayerInteractEvent event) {
         final var block = BlockPhialDisplay.getInstance();
         final var player = event.entityPlayer;
+        final var heldItem = player.getHeldItem();
         final var world = event.world;
         final var face = ForgeDirection.getOrientation(event.face);
 
@@ -89,22 +89,21 @@ public class PlayerEvents {
         var x = event.x;
         var y = event.y;
         var z = event.z;
-        var metadata = world.getBlockMetadata(x, y, z);
-
-        if (world.getBlock(x, y, z) == block && metadata < BlockPhialDisplay.MAX_METADATA) {
+        var tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display : null;
+        if (world.getBlock(x, y, z) == block && tileEntity != null && tileEntity.canAddPhial()) {
             // add a phial to an existing block
-            world.setBlockMetadataWithNotify(x, y, z, metadata + 1, 1 & 2);
-            world.markBlockRangeForRenderUpdate(x, y, z, x, y, z);
-            placed = true;
+            placed = tileEntity.addPhial(heldItem);
         } else {
             x = x + face.offsetX;
             y = y + face.offsetY;
             z = z + face.offsetZ;
             if (block.canPlaceBlockAt(world, x, y, z)) {
                 // place a new block
-                world.setBlock(x, y, z, block, 1, 1 & 2);
-                world.markBlockRangeForRenderUpdate(x, y, z, x, y, z);
-                placed = true;
+                world.setBlock(x, y, z, block);
+                tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display : null;
+                if (tileEntity != null) {
+                    placed = tileEntity.addPhial(heldItem);
+                }
             }
         }
 
@@ -112,19 +111,14 @@ public class PlayerEvents {
             return;
         }
 
-        var tileEntity = (TileEntityPhialDisplay) world.getTileEntity(x, y, z);
-        tileEntity.addEssentia(player, player.getHeldItem());
+        if (!player.capabilities.isCreativeMode) {
+            heldItem.stackSize -= 1;
+            player.inventoryContainer.detectAndSendChanges();
+        }
 
         if (world.isRemote) {
+            world.markBlockRangeForRenderUpdate(x, y, z, x, y, z);
             player.swingItem();
-        }
-    }
-
-    private void addEssenitaFromPhial(PlayerInteractEvent event) {
-        int x = event.x, y = event.y, z = event.z;
-        final var tileEntity = event.world.getTileEntity(x, y, z);
-        if (tileEntity instanceof TileEntityPhialDisplay display) {
-            display.addEssentia(event.entityPlayer, event.entityPlayer.getHeldItem());
         }
     }
 

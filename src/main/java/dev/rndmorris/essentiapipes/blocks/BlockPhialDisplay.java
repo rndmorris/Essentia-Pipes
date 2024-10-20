@@ -136,4 +136,30 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
     public void setBlockBounds(BlockBounds b) {
         super.setBlockBounds(b.minX, b.minY, b.minZ, b.maxX, b.maxY, b.maxZ);
     }
+
+    @Override
+    public void setBlockBoundsBasedOnState(IBlockAccess worldIn, int x, int y, int z) {
+        final var tile = worldIn.getTileEntity(x, y, z);
+        if (!(tile instanceof TileEntityPhialDisplay display)) {
+            setBlockBounds(BlockBounds.UNIT);
+            return;
+        }
+
+        final var allPhialBounds = BlockPhialDisplayRenderer.positionedPhialBounds;
+        var bound = allPhialBounds[0];
+
+        float minX = 0, minY = bound.minY, minZ = 0, maxX = 0, maxY = bound.maxY, maxZ = 0;
+        for (var index = 0; index < 4; ++index) {
+            if (display.getPhialSet().hasPhialAt(index)) {
+                bound = allPhialBounds[index];
+                minX = Float.min(minX, bound.minX);
+                maxX = Float.max(maxX, bound.maxX);
+                minZ = Float.min(minZ, bound.minZ);
+                maxZ = Float.max(maxZ, bound.maxZ);
+            }
+        }
+
+        final var pixel = 1F / 16F;
+        super.setBlockBounds(minX - pixel, minY, minZ - pixel, maxX + pixel, maxY + pixel, maxZ + pixel);
+    }
 }

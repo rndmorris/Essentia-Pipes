@@ -28,17 +28,44 @@ public class StoragePhialSet {
         return this.phials;
     }
 
-    public void expandTo(int newCapacity) {
-        final var expandTo = Integer.min(maxPhials, newCapacity);
-        while (phialCount < expandTo) {
-            addPhial();
+    public boolean canAddPhial() {
+        return phialCount < maxPhials;
+    }
+
+    public boolean hasPhialAt(int index) {
+        if (inBounds(index)) {
+            return phials[index] != null;
         }
+        return false;
+    }
+
+    private boolean inBounds(int index) {
+        return 0 <= index && index < phials.length;
+    }
+
+    public StoragePhial getPhial(int index) {
+        if (inBounds(index)) {
+            return phials[index];
+        }
+        return null;
+    }
+
+    public boolean setPhial(int index, StoragePhial newPhial) {
+        if (inBounds(index)) {
+            phials[index] = newPhial;
+            return true;
+        }
+        return false;
     }
 
     public boolean addPhial() {
+        return addPhial(null, 0);
+    }
+
+    public boolean addPhial(Aspect aspect, int amount) {
         for (var index = 0; index < phials.length; ++index) {
             if (phials[index] == null) {
-                phials[index] = new StoragePhial();
+                phials[index] = new StoragePhial(aspect, amount);
                 phialCount += 1;
                 return true;
             }

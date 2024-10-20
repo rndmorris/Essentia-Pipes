@@ -1,5 +1,6 @@
 package dev.rndmorris.essentiapipes.client;
 
+import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;
@@ -37,10 +38,6 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
 
     @Override
     public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
-        // if (!(block instanceof BlockPhialDisplay display)) {
-        // return;
-        // }
-        // renderer.renderFaceYPos(block, 0.0D, 0.0D, 0.0D, display.icons.phial);
     }
 
     @Override
@@ -75,15 +72,18 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
 
         ScaledRenderHelper.UV_OVERRIDES.update(BlockPhialDisplayRenderer::trimTextureForGlass);
 
-        final var metadata = world.getBlockMetadata(x, y, z);
+        final var tile = (TileEntityPhialDisplay) world.getTileEntity(x, y, z);
 
-        for (var phialIndex = 0; phialIndex < metadata && phialIndex < positionedPhialBounds.length; ++phialIndex) {
+        for (var phialIndex = 0; phialIndex < positionedPhialBounds.length; ++phialIndex) {
+            if (!tile.getPhialSet().hasPhialAt(phialIndex)) {
+                continue;
+            }
             block.setBlockBounds(positionedPhialBounds[phialIndex]);
             renderer.setRenderBoundsFromBlock(block);
             ScaledRenderHelper.renderStandardBlock(renderer, block, x, y, z);
         }
 
-        block.setBlockBounds(BlockBounds.UNIT);
+        block.setBlockBoundsBasedOnState(world, x, y, z);
         renderer.setRenderBoundsFromBlock(block);
         return true;
     }

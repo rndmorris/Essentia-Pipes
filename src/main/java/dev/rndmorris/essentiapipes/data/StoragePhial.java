@@ -37,6 +37,15 @@ public class StoragePhial implements Comparable<StoragePhial> {
     private byte amount;
     private Aspect aspect;
 
+    public StoragePhial() {
+        this(null, 0);
+    }
+
+    public StoragePhial(Aspect aspect, int amount) {
+        this.aspect = aspect;
+        this.amount = (byte) amount;
+    }
+
     public byte getAmount() {
         return amount;
     }
