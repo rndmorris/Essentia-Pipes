@@ -2,7 +2,6 @@ package dev.rndmorris.essentiapipes.client;
 
 import static net.minecraft.client.renderer.RenderBlocks.fancyGrass;
 
-import dev.rndmorris.essentiapipes.data.BlockBounds;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockGrass;
 import net.minecraft.client.Minecraft;
@@ -27,6 +26,7 @@ public class ScaledRenderHelper {
         public final Override posZ = new Override();
 
         public static class Override {
+
             public double minU = 0;
             public double maxU = 16;
             public double minV = 0;
@@ -59,6 +59,7 @@ public class ScaledRenderHelper {
         }
 
         public interface IUpdater {
+
             void update(ForgeDirection direction, Override override);
         }
 
@@ -3010,7 +3011,6 @@ public class ScaledRenderHelper {
             maxU = icon.getInterpolatedU(0);
             minU = icon.getInterpolatedU(16);
         }
-
 
         double bottomRightU;
 

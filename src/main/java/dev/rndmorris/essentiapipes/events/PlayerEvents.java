@@ -1,7 +1,5 @@
 package dev.rndmorris.essentiapipes.events;
 
-import dev.rndmorris.essentiapipes.EssentiaPipes;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -80,8 +78,7 @@ public class PlayerEvents {
             world.setBlockMetadataWithNotify(x, y, z, metadata + 1, 1 & 2);
             world.markBlockRangeForRenderUpdate(x, y, z, x, y, z);
             placed = true;
-        }
-        else {
+        } else {
             x = x + face.offsetX;
             y = y + face.offsetY;
             z = z + face.offsetZ;

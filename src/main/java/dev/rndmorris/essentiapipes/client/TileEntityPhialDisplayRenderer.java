@@ -1,18 +1,19 @@
 package dev.rndmorris.essentiapipes.client;
 
-import cpw.mods.fml.client.registry.ClientRegistry;
-import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
-import dev.rndmorris.essentiapipes.data.BlockBounds;
-import dev.rndmorris.essentiapipes.data.StoragePhial;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
-
-import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import net.minecraft.world.World;
+
 import org.lwjgl.opengl.GL11;
+
+import cpw.mods.fml.client.registry.ClientRegistry;
+import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
+import dev.rndmorris.essentiapipes.data.BlockBounds;
+import dev.rndmorris.essentiapipes.data.StoragePhial;
+import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
 import thaumcraft.common.config.ConfigBlocks;
 
 public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
@@ -30,14 +31,14 @@ public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
 
     public static final float expand = pixels(-0.5F);
     public static final BlockBounds[] positionedLiquidBounds = new BlockBounds[] {
-        BlockPhialDisplayRenderer.positionedPhialBounds[0].expand(expand, expand, expand),
-        BlockPhialDisplayRenderer.positionedPhialBounds[1].expand(expand, expand, expand),
-        BlockPhialDisplayRenderer.positionedPhialBounds[2].expand(expand, expand, expand),
-        BlockPhialDisplayRenderer.positionedPhialBounds[3].expand(expand, expand, expand),
-    };
+        BlockPhialDisplayRenderer.positionedPhialBounds[0].expand(expand),
+        BlockPhialDisplayRenderer.positionedPhialBounds[1].expand(expand),
+        BlockPhialDisplayRenderer.positionedPhialBounds[2].expand(expand),
+        BlockPhialDisplayRenderer.positionedPhialBounds[3].expand(expand), };
 
-    public void renderPhialDisplay(TileEntityPhialDisplay tile, double x, double y, double z, float f) {
-        final var phials = tile.getPhials().getPhials();
+    public void renderPhialDisplay(TileEntityPhialDisplay tile, double x, double y, double z) {
+        final var phials = tile.getPhials()
+            .getPhials();
         final var renderer = new RenderBlocks();
         for (var index = 0; index < phials.length; ++index) {
             var phial = phials[index];
@@ -55,13 +56,14 @@ public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
     private void preRender(double x, double y, double z) {
         GL11.glPushMatrix();
         GL11.glDisable(2884);
-        GL11.glTranslatef((float)x + 0.5F, (float)y + 0.01F, (float)z + 0.5F);
+        GL11.glTranslatef((float) x + 0.5F, (float) y + 0.01F, (float) z + 0.5F);
         GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    private void renderEssentia(RenderBlocks renderer, TileEntityPhialDisplay te, StoragePhial phial, BlockBounds bounds) {
-        if(this.field_147501_a.field_147553_e == null) {
+    private void renderEssentia(RenderBlocks renderer, TileEntityPhialDisplay te, StoragePhial phial,
+        BlockBounds bounds) {
+        if (this.field_147501_a.field_147553_e == null) {
             return;
         }
 
@@ -75,15 +77,20 @@ public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
 
         final var fullness = (bounds.maxY - bounds.minY) * phial.getPercentFull();
 
-        renderer.setRenderBounds(bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.minY + fullness, bounds.maxZ);
+        renderer
+            .setRenderBounds(bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.minY + fullness, bounds.maxZ);
         t.startDrawingQuads();
-        if(phial.getAspect() != null) {
-            t.setColorOpaque_I(phial.getAspect().getColor());
+        if (phial.getAspect() != null) {
+            t.setColorOpaque_I(
+                phial.getAspect()
+                    .getColor());
         }
 
         int bright = 200;
-        if(world != null) {
-            bright = Math.max(200, ConfigBlocks.blockJar.getMixedBrightnessForBlock(te.getWorldObj(), te.xCoord, te.yCoord, te.zCoord));
+        if (world != null) {
+            bright = Math.max(
+                200,
+                ConfigBlocks.blockJar.getMixedBrightnessForBlock(te.getWorldObj(), te.xCoord, te.yCoord, te.zCoord));
         }
 
         t.setBrightness(bright);
@@ -106,10 +113,9 @@ public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
     }
 
     @Override
-    public void renderTileEntityAt(TileEntity tileEntity, double x, double y, double z,
-        float f) {
+    public void renderTileEntityAt(TileEntity tileEntity, double x, double y, double z, float f) {
         if (tileEntity instanceof TileEntityPhialDisplay display) {
-            renderPhialDisplay(display, x, y, z, f);
+            renderPhialDisplay(display, x, y, z);
         }
     }
 }

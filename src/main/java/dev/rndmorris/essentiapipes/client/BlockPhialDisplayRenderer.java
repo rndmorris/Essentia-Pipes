@@ -3,12 +3,12 @@ package dev.rndmorris.essentiapipes.client;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
 import dev.rndmorris.essentiapipes.data.BlockBounds;
-import net.minecraftforge.common.util.ForgeDirection;
 import thaumcraft.client.renderers.block.BlockRenderer;
 
 public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
@@ -21,13 +21,13 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
     }
 
     private static final float inset = 2F / 16F;
-    public static final BlockBounds phialBounds = new BlockBounds(pixels(10), pixels(12), pixels(10)).multiply(1F / 2F);//.transform(pixels(3), 0, pixels(3));
+    public static final BlockBounds phialBounds = new BlockBounds(pixels(10), pixels(12), pixels(10)).multiply(1F / 2F);// .transform(pixels(3),
+                                                                                                                        // 0,
+                                                                                                                        // pixels(3));
     public static final BlockBounds[] positionedPhialBounds = new BlockBounds[] {
-        phialBounds.transform(inset, 0, inset),
-        phialBounds.transform(inset, 0, 1 - phialBounds.maxZ - inset),
+        phialBounds.transform(inset, 0, inset), phialBounds.transform(inset, 0, 1 - phialBounds.maxZ - inset),
         phialBounds.transform(1 - phialBounds.maxX - inset, 0, inset),
-        phialBounds.transform(1 - phialBounds.maxX - inset, 0, 1 - phialBounds.maxZ - inset),
-    };
+        phialBounds.transform(1 - phialBounds.maxX - inset, 0, 1 - phialBounds.maxZ - inset), };
 
     public static void init() {
         renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -47,7 +47,7 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId,
         RenderBlocks renderer) {
         if (block instanceof BlockPhialDisplay display) {
-            return renderWorldBlock(world, x, y, z, display, modelId, renderer);
+            return renderWorldBlock(world, x, y, z, display, renderer);
         }
         return false;
     }
@@ -69,24 +69,7 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
         }
     }
 
-//    private static void trimTextureForLid(ForgeDirection direction, ScaledRenderHelper.Overrides.Override over) {
-//        switch (direction) {
-//            case DOWN, UP -> {
-//                over.minU = 5;
-//                over.maxU = 16 - over.minU;
-//                over.minV = 5;
-//                over.maxV = 16 - over.minV;
-//            }
-//            default -> {
-//                over.minU = 5;
-//                over.maxU = 16 - over.minU;
-//                over.minV = 2;
-//                over.maxV = 4;
-//            }
-//        }
-//    }
-
-    private boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, BlockPhialDisplay block, int modelId,
+    private boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, BlockPhialDisplay block,
         RenderBlocks renderer) {
         BlockRenderer.setBrightness(world, x, y, z, block);
 

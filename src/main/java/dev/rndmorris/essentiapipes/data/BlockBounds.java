@@ -1,6 +1,6 @@
 package dev.rndmorris.essentiapipes.data;
 
-public class BlockBounds implements Cloneable {
+public class BlockBounds {
 
     public static final BlockBounds UNIT = new BlockBounds(0F, 0F, 0F, 1F, 1F, 1F);
 
@@ -34,15 +34,12 @@ public class BlockBounds implements Cloneable {
             maxZ * scalar);
     }
 
+    public BlockBounds expand(float by) {
+        return expand(by, by, by); // https://youtu.be/Eo-KmOd3i7s
+    }
+
     public BlockBounds expand(float x, float y, float z) {
-        return new BlockBounds(
-            minX - x,
-            minY - y,
-            minZ - z,
-            maxX + x,
-            maxY + y,
-            maxZ + z
-        );
+        return new BlockBounds(minX - x, minY - y, minZ - z, maxX + x, maxY + y, maxZ + z);
     }
 
     public BlockBounds transform(float x, float y, float z) {
