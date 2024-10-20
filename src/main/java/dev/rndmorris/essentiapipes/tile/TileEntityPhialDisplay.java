@@ -1,5 +1,6 @@
 package dev.rndmorris.essentiapipes.tile;
 
+import dev.rndmorris.essentiapipes.EssentiaPipes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,6 +18,7 @@ import thaumcraft.common.items.ItemEssence;
 public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectContainer, IEssentiaTransport {
 
     public static final ForgeDirection ACCESS_FROM = ForgeDirection.UP;
+    public static final String HAS_TUBE = "hasTube";
     public static final String ID = "PhialDisplay";
     public static final byte MAX_PHIALS = 4;
 
@@ -32,8 +34,21 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     private final StoragePhialSet phials = new StoragePhialSet(MAX_PHIALS);
 
+    private boolean hasTube = false;
+
     public TileEntityPhialDisplay() {
 
+    }
+
+    public boolean hasTube() {
+        return hasTube;
+    }
+
+    public void hasTube(boolean value) {
+        if (value != hasTube) {
+            hasTube = value;
+            markDirty();
+        }
     }
 
     public StoragePhialSet getPhials() {
@@ -65,10 +80,10 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         final var addAspect = aspectEntry.getKey();
         final var addAmount = aspectEntry.getValue();
 
-        final var amountAdded = addEssentia(addAspect, addAmount, ACCESS_FROM);
+        final var leftovers = phials.addEssentia(addAspect, addAmount);
         // to-do: handle leftovers
 
-        if (!player.capabilities.isCreativeMode && amountAdded > 0) {
+        if (!player.capabilities.isCreativeMode && leftovers != addAmount) {
             itemStack.stackSize--;
             player.inventoryContainer.detectAndSendChanges();
         }
@@ -85,6 +100,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     @Override
     public void readCustomNBT(NBTTagCompound nbttagcompound) {
         phials.readFromNBT(nbttagcompound);
+        hasTube = nbttagcompound.getBoolean(HAS_TUBE);
     }
 
     @Override
@@ -96,6 +112,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     @Override
     public void writeCustomNBT(NBTTagCompound nbttagcompound) {
         phials.writeToNBT(nbttagcompound);
+        nbttagcompound.setBoolean(HAS_TUBE, hasTube);
     }
 
     //
@@ -163,17 +180,17 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public boolean isConnectable(ForgeDirection face) {
-        return face == ACCESS_FROM;
+        return hasTube() && face == ACCESS_FROM;
     }
 
     @Override
     public boolean canInputFrom(ForgeDirection face) {
-        return face == ACCESS_FROM;
+        return hasTube() && face == ACCESS_FROM;
     }
 
     @Override
     public boolean canOutputTo(ForgeDirection face) {
-        return face == ACCESS_FROM;
+        return hasTube() && face == ACCESS_FROM;
     }
 
     @Override
@@ -186,7 +203,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public int getSuctionAmount(ForgeDirection var1) {
-        return phials.allPhialsFull() ? 0 : 1;
+        return hasTube() && !phials.allPhialsFull() ? 1 : 0;
     }
 
     @Override
@@ -216,6 +233,6 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public boolean renderExtendedTube() {
-        return false;
+        return hasTube();
     }
 }

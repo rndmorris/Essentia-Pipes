@@ -1,5 +1,6 @@
 package dev.rndmorris.essentiapipes.events;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -25,6 +26,7 @@ public class PlayerEvents {
     }
 
     private ItemEssence itemEssence;
+    private ItemStack essentiaTube;
 
     @SubscribeEvent
     public void onInteractEvent(PlayerInteractEvent event) {
@@ -32,12 +34,21 @@ public class PlayerEvents {
             itemEssence = (ItemEssence) ItemApi.getItem("itemEssence", 0)
                 .getItem();
         }
+        if (essentiaTube == null) {
+            essentiaTube = ItemApi.getBlock("blockTube", 0);
+        }
 
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        if (isPhial(event.entityPlayer.getHeldItem())) {
-            phialDisplayInteractions(event);
+        final var stack =event.entityPlayer.getHeldItem();
+        if (isPhial(stack)) {
+            addPhialToPhialDisplay(event);
+            return;
+        }
+        if (isTube(stack)) {
+            addTubeToPhialDisplay(event);
+            return;
         }
     }
 
@@ -49,7 +60,14 @@ public class PlayerEvents {
         return stack.getItem() == itemEssence && (damage == 0 || damage == 1);
     }
 
-    private void phialDisplayInteractions(PlayerInteractEvent event) {
+    private boolean isTube(ItemStack stack) {
+        if (stack == null) {
+            return false;
+        }
+        return stack.getItem() == essentiaTube.getItem() && stack.getItemDamage() == essentiaTube.getItemDamage();
+    }
+
+    private void addPhialToPhialDisplay(PlayerInteractEvent event) {
         if (event.entityPlayer.isSneaking()) {
             placePhial(event);
         } else {
@@ -107,6 +125,27 @@ public class PlayerEvents {
         final var tileEntity = event.world.getTileEntity(x, y, z);
         if (tileEntity instanceof TileEntityPhialDisplay display) {
             display.addEssentia(event.entityPlayer, event.entityPlayer.getHeldItem());
+        }
+    }
+
+    private void addTubeToPhialDisplay(PlayerInteractEvent event) {
+        if (!event.entityPlayer.isSneaking()) {
+            return;
+        }
+        int x = event.x, y = event.y, z = event.z;
+        if (!(event.world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display)) {
+            return;
+        }
+        if (display.hasTube()) {
+            return;
+        }
+        display.hasTube(true);
+        event.useBlock = Event.Result.DENY;
+        event.useItem = Event.Result.DENY;
+        final var player = event.entityPlayer;
+        if (!player.capabilities.isCreativeMode) {
+            event.entityPlayer.getHeldItem().stackSize -= 1;
+            event.entityPlayer.inventoryContainer.detectAndSendChanges();
         }
     }
 }
