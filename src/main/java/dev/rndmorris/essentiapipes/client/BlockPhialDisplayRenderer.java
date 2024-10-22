@@ -26,16 +26,13 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
     public static float pixels(float count) {
         return count / 16F;
     }
-    public static float subPixel(float count) {
-        return count / 32F;
-    }
 
     private static final float inset = 2F / 16F;
     public static final BlockBounds phialBound = new BlockBounds(pixels(10), pixels(12), pixels(10)).multiply(1F / 2F);
     public static final BlockBounds phialTubeBound = new BlockBounds(pixels(2), pixels(3), pixels(2));
 
-    public static final BlockBounds[] positionedPhialBounds = new BlockBounds[] {
-        phialBound.transform(inset, 0, inset), phialBound.transform(inset, 0, 1 - phialBound.maxZ - inset),
+    public static final BlockBounds[] positionedPhialBounds = new BlockBounds[] { phialBound.transform(inset, 0, inset),
+        phialBound.transform(inset, 0, 1 - phialBound.maxZ - inset),
         phialBound.transform(1 - phialBound.maxX - inset, 0, inset),
         phialBound.transform(1 - phialBound.maxX - inset, 0, 1 - phialBound.maxZ - inset), };
 
@@ -172,7 +169,8 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
         ScaledRenderHelper.UV_OVERRIDES.update(BlockPhialDisplayRenderer::trimPhialTubeTexture);
 
         for (var index = 0; index < positionedPhialTubeBounds.length; ++index) {
-            if (!tile.getPhialSet().hasPhialAt(index)) {
+            if (!tile.getPhialSet()
+                .hasPhialAt(index)) {
                 continue;
             }
 
@@ -194,18 +192,31 @@ public class BlockPhialDisplayRenderer implements ISimpleBlockRenderingHandler {
 
         ScaledRenderHelper.UV_OVERRIDES.update(BlockPhialDisplayRenderer::trimNSTubeTexture);
         // Western North-South tube
-        blockPhialDisplay.setBlockBounds(nwBound.minX, nwBound.maxY, nwBound.minZ, swBound.maxX, swBound.maxY + pixels(2), swBound.maxZ);
+        blockPhialDisplay.setBlockBounds(
+            nwBound.minX,
+            nwBound.maxY,
+            nwBound.minZ,
+            swBound.maxX,
+            swBound.maxY + pixels(2),
+            swBound.maxZ);
         renderer.setRenderBoundsFromBlock(blockPhialDisplay);
         ScaledRenderHelper.renderAllFaces(renderer, blockPhialDisplay, x, y, z, tubeIcon);
 
         // Eastern North-South tube
-        blockPhialDisplay.setBlockBounds(neBound.minX, neBound.maxY, neBound.minZ, seBound.maxX, seBound.maxY + pixels(2), seBound.maxZ);
+        blockPhialDisplay.setBlockBounds(
+            neBound.minX,
+            neBound.maxY,
+            neBound.minZ,
+            seBound.maxX,
+            seBound.maxY + pixels(2),
+            seBound.maxZ);
         renderer.setRenderBoundsFromBlock(blockPhialDisplay);
         ScaledRenderHelper.renderAllFaces(renderer, blockPhialDisplay, x, y, z, tubeIcon);
 
         // East-West tube
         ScaledRenderHelper.UV_OVERRIDES.update(BlockPhialDisplayRenderer::trimEWTubeTexture);
-        blockPhialDisplay.setBlockBounds(nwBound.maxX, nwBound.maxY, pixels(7), neBound.minX, neBound.maxY + pixels(2), pixels(9));
+        blockPhialDisplay
+            .setBlockBounds(nwBound.maxX, nwBound.maxY, pixels(7), neBound.minX, neBound.maxY + pixels(2), pixels(9));
         renderer.setRenderBoundsFromBlock(blockPhialDisplay);
         ScaledRenderHelper.renderAllFaces(renderer, blockPhialDisplay, x, y, z, tubeIcon);
 

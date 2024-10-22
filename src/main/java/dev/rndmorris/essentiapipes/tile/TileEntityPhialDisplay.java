@@ -6,6 +6,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.essentiapipes.data.StoragePhialSet;
 import thaumcraft.api.ItemApi;
+import thaumcraft.api.ThaumcraftApiHelper;
 import thaumcraft.api.TileThaumcraft;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.AspectList;
@@ -46,6 +47,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         if (value != hasTube) {
             hasTube = value;
             markDirty();
+            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
         }
     }
 
@@ -93,6 +95,30 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
         return (int) (15 * ((float) phials.totalAmountStored() / (MAX_PHIALS * 8F)));
     }
 
+    private void fillPhials() {
+        final var tile = ThaumcraftApiHelper.getConnectableTile(worldObj, xCoord, yCoord, zCoord, ForgeDirection.UP);
+        final var takeFromFace = ACCESS_FROM.getOpposite();
+        if (!(tile instanceof IEssentiaTransport takeFrom && takeFrom.canOutputTo(takeFromFace))) {
+            return;
+        }
+
+        if (takeFrom.getEssentiaAmount(takeFromFace) < 1) {
+            return;
+        }
+        if (takeFrom.getSuctionAmount(takeFromFace) >= getSuctionAmount(ACCESS_FROM)) {
+            return;
+        }
+        if (takeFrom.getMinimumSuction() >= getSuctionAmount(ACCESS_FROM)) {
+            return;
+        }
+        var takeAspect = takeFrom.getEssentiaType(takeFromFace);
+        if (!phials.acceptsAspect(takeAspect)) {
+            return;
+        }
+
+        this.addToContainer(takeAspect, takeFrom.takeEssentia(takeAspect, 1, takeFromFace));
+    }
+
     //
     // Overrides
     //
@@ -101,6 +127,13 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
     public void readCustomNBT(NBTTagCompound nbttagcompound) {
         phials.readFromNBT(nbttagcompound);
         hasTube = nbttagcompound.getBoolean(HAS_TUBE);
+    }
+
+    @Override
+    public void updateEntity() {
+        if (!worldObj.isRemote && worldObj.getWorldTime() % 5 == 0 && phials.anyPhialNotFull()) {
+            fillPhials();
+        }
     }
 
     @Override
@@ -197,7 +230,7 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public int getSuctionAmount(ForgeDirection var1) {
-        return hasTube() && !phials.allPhialsFull() ? 1 : 0;
+        return hasTube() && phials.anyPhialNotFull() ? 1 : 0;
     }
 
     @Override
@@ -212,12 +245,12 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
 
     @Override
     public Aspect getEssentiaType(ForgeDirection face) {
-        return phials.randomStoredAspect(worldObj.rand);
+        return face == ForgeDirection.UNKNOWN ? phials.firstStoredAspect() : null;
     }
 
     @Override
     public int getEssentiaAmount(ForgeDirection face) {
-        return face == ACCESS_FROM ? phials.totalAmountStored() : 0;
+        return phials.totalAmountStored();
     }
 
     @Override

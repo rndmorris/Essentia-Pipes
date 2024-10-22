@@ -101,12 +101,12 @@ public class PlayerEvents {
             if (world.getBlock(x, y, z) == block && tileEntity != null && tileEntity.canAddPhial()) {
                 // the block in front of what we're targeting is a phial display that can accept a new phial
                 placed = tileEntity.addPhial(heldItem);
-            }
-            else {
+            } else {
                 if (block.canPlaceBlockAt(world, x, y, z)) {
                     // the block in front of what we're targeting can be replaced with a new phial display
                     world.setBlock(x, y, z, block);
-                    tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display : null;
+                    tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display
+                        : null;
                     if (tileEntity != null) {
                         placed = tileEntity.addPhial(heldItem);
                     }

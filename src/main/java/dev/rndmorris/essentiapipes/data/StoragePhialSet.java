@@ -1,7 +1,7 @@
 package dev.rndmorris.essentiapipes.data;
 
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.List;
 import java.util.TreeSet;
 
 import javax.annotation.Nonnull;
@@ -73,34 +73,43 @@ public class StoragePhialSet {
         return false;
     }
 
-    public boolean allPhialsFull() {
+    public boolean anyPhialNotFull() {
         for (var phial : phials) {
             if (phial == null) {
                 continue;
             }
             if (phial.isNotFull()) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
-    public Aspect randomStoredAspect(Random rand) {
-        final var nonEmptyPhials = new ArrayList<StoragePhial>(maxPhials);
+    public Aspect firstStoredAspect() {
         for (var phial : phials) {
             if (phial == null) {
                 continue;
             }
             if (phial.getAmount() > 0) {
-                nonEmptyPhials.add(phial);
+                return phial.getAspect();
             }
         }
-        return nonEmptyPhials.get(rand.nextInt(nonEmptyPhials.size()))
-            .getAspect();
+        return null;
     }
 
-    public int remainingPhialCapacity() {
-        return maxPhials - phialCount;
+    public List<Aspect> getPreferredAspects() {
+        final var result = new ArrayList<Aspect>(4);
+        for (var phial : phials) {
+            if (phial == null || phial.isFull() || phial.isEmpty()) {
+                continue;
+            }
+            final var aspect = phial.getAspect();
+            if (!result.contains(aspect)) {
+                result.add(aspect);
+            }
+        }
+
+        return result;
     }
 
     public int totalAmountStored() {

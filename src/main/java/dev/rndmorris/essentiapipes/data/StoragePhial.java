@@ -75,6 +75,10 @@ public class StoragePhial implements Comparable<StoragePhial> {
         return this.aspect == null || this.aspect == aspect;
     }
 
+    public boolean isEmpty() {
+        return amount <= 0;
+    }
+
     public boolean isFull() {
         return amount >= MAX_AMOUNT;
     }
