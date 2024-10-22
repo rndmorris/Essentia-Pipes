@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
@@ -13,11 +14,14 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import dev.rndmorris.essentiapipes.EssentiaPipes;
 import dev.rndmorris.essentiapipes.client.BlockPhialDisplayRenderer;
 import dev.rndmorris.essentiapipes.data.BlockBounds;
 import dev.rndmorris.essentiapipes.items.ItemBlockPhialDisplay;
 import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
+import thaumcraft.api.ItemApi;
 import thaumcraft.common.blocks.CustomStepSound;
 
 public class BlockPhialDisplay extends Block implements ITileEntityProvider {
@@ -88,6 +92,12 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
         };
     }
 
+    @SideOnly(Side.CLIENT)
+    public Item getItem(World worldIn, int x, int y, int z) {
+        return ItemApi.getItem("itemEssence", 0)
+            .getItem();
+    }
+
     @Override
     public int getLightValue(IBlockAccess world, int x, int y, int z) {
         final var tile = world.getTileEntity(x, y, z);
@@ -148,7 +158,8 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
         final var allPhialBounds = BlockPhialDisplayRenderer.positionedPhialBounds;
         var bound = allPhialBounds[0];
 
-        float minX = bound.minX, minY = bound.minY, minZ = bound.minZ, maxX = bound.maxX, maxY = bound.maxY, maxZ = bound.maxZ;
+        float minX = bound.minX, minY = bound.minY, minZ = bound.minZ, maxX = bound.maxX, maxY = bound.maxY,
+            maxZ = bound.maxZ;
         for (var index = 1; index < 4; ++index) {
             if (display.getPhialSet()
                 .hasPhialAt(index)) {
