@@ -148,9 +148,10 @@ public class BlockPhialDisplay extends Block implements ITileEntityProvider {
         final var allPhialBounds = BlockPhialDisplayRenderer.positionedPhialBounds;
         var bound = allPhialBounds[0];
 
-        float minX = 0, minY = bound.minY, minZ = 0, maxX = 0, maxY = bound.maxY, maxZ = 0;
-        for (var index = 0; index < 4; ++index) {
-            if (display.getPhialSet().hasPhialAt(index)) {
+        float minX = bound.minX, minY = bound.minY, minZ = bound.minZ, maxX = bound.maxX, maxY = bound.maxY, maxZ = bound.maxZ;
+        for (var index = 1; index < 4; ++index) {
+            if (display.getPhialSet()
+                .hasPhialAt(index)) {
                 bound = allPhialBounds[index];
                 minX = Float.min(minX, bound.minX);
                 maxX = Float.max(maxX, bound.maxX);

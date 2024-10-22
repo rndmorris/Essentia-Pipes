@@ -73,17 +73,16 @@ public class TileEntityPhialDisplay extends TileThaumcraft implements IAspectCon
             return false;
         }
         final var aspects = itemEssence().getAspects(heldItem);
-
+        var result = false;
         if (aspects != null && aspects.visSize() > 0) {
-            final var kv = aspects.aspects.entrySet().iterator().next();
-            final var result = phials.addPhial(kv.getKey(), kv.getValue());
-            if (result) {
-                markDirty();
-            }
-            return result;
-        }
+            final var kv = aspects.aspects.entrySet()
+                .iterator()
+                .next();
+            result = phials.addPhial(kv.getKey(), kv.getValue());
 
-        final var result = phials.addPhial();
+        } else {
+            result = phials.addPhial();
+        }
         if (result) {
             markDirty();
         }

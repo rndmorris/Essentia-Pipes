@@ -4,6 +4,10 @@ public class BlockBounds {
 
     public static final BlockBounds UNIT = new BlockBounds(0F, 0F, 0F, 1F, 1F, 1F);
 
+    public final float diffX;
+    public final float diffY;
+    public final float diffZ;
+
     public final float minX;
     public final float minY;
     public final float minZ;
@@ -22,12 +26,16 @@ public class BlockBounds {
         this.maxX = maxX;
         this.maxY = maxY;
         this.maxZ = maxZ;
+
+        diffX = maxX - minX;
+        diffY = maxY - minY;
+        diffZ = maxZ - minZ;
     }
 
     public BlockBounds multiply(float scalar) {
         return new BlockBounds(
             minX * scalar,
-            minY * scalar * scalar,
+            minY * scalar,
             minZ * scalar,
             maxX * scalar,
             maxY * scalar,
@@ -44,5 +52,28 @@ public class BlockBounds {
 
     public BlockBounds transform(float x, float y, float z) {
         return new BlockBounds(minX + x, minY + y, minZ + z, maxX + x, maxY + y, maxZ + z);
+    }
+
+    @Override
+    public String toString() {
+        return "BlockBounds{" + "diffX="
+            + diffX
+            + ", diffY="
+            + diffY
+            + ", diffZ="
+            + diffZ
+            + ", minX="
+            + minX
+            + ", minY="
+            + minY
+            + ", minZ="
+            + minZ
+            + ", maxX="
+            + maxX
+            + ", maxY="
+            + maxY
+            + ", maxZ="
+            + maxZ
+            + '}';
     }
 }

@@ -14,7 +14,6 @@ import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
 import dev.rndmorris.essentiapipes.data.BlockBounds;
 import dev.rndmorris.essentiapipes.data.StoragePhial;
 import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
-import thaumcraft.common.blocks.BlockTube;
 import thaumcraft.common.config.ConfigBlocks;
 
 public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
@@ -37,34 +36,6 @@ public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
         BlockPhialDisplayRenderer.positionedPhialBounds[2].expand(expand),
         BlockPhialDisplayRenderer.positionedPhialBounds[3].expand(expand), };
 
-    public static final BlockBounds[] positionedPhialTubeBounds = calculatePhialTubeBounds();
-
-    private static BlockBounds[] calculatePhialTubeBounds() {
-        final var allPhialBounds = BlockPhialDisplayRenderer.positionedPhialBounds;
-        final var result = new BlockBounds[allPhialBounds.length];
-
-        final var pipeLength = pixels(4); // to-do: calculate proper length
-        final var pipeWidth = pixels(2);
-
-        for (var index = 0; index < allPhialBounds.length; ++index) {
-            final var phialBounds = allPhialBounds[index];
-            float minX, minY, minZ, maxX, maxY, maxZ;
-
-            minX = phialBounds.minX + ((phialBounds.maxX - phialBounds.minX) / 2) - (pipeWidth / 2);
-            maxX = minX + pipeWidth;
-
-            minY = phialBounds.maxY - pixels(1);
-            maxY = minY + pipeLength;
-
-            minZ = phialBounds.minZ + ((phialBounds.maxZ - phialBounds.minZ) / 2) - (pipeWidth / 2);
-            maxZ = minZ + pipeWidth;
-
-            result[index] = new BlockBounds(minX, minY, minZ, maxX, maxY, maxZ);
-        }
-
-        return result;
-    }
-
     private BlockPhialDisplay blockPhialDisplay;
 
     public void renderPhialDisplay(TileEntityPhialDisplay tile, double x, double y, double z) {
@@ -76,49 +47,13 @@ public class TileEntityPhialDisplayRenderer extends TileEntitySpecialRenderer {
             .getPhials();
         final var renderer = new RenderBlocks();
         renderer.blockAccess = tile.getWorldObj();
-
-//        if (tile.hasTube()) {
-//            ScaledRenderHelper.UV_OVERRIDES.update((dir, o) -> {
-//                final var subPx = 1F / 32F;
-//                switch (dir) {
-//                    case UP, DOWN -> {
-//                        o.minU = 16 * 14 * subPx;
-//                        o.maxU = o.minU + (4 * subPx);
-//                        o.minV = o.minU;
-//                        o.maxV = o.maxU;
-//                    }
-//                    default -> {
-//                        o.minU = 16 * 14 * subPx;
-//                        o.maxU = o.minU + (4 * subPx);
-//                        o.minV = 16 - (16 * 8 * subPx);
-//                        o.maxV = 16;
-//                    }
-//                }
-//            });
-//        }
         for (var index = 0; index < phials.length; ++index) {
-//            if (tile.hasTube()) {
-//                renderPhialTube(tile, renderer, positionedPhialTubeBounds[index], (int) x, (int) y, (int) z);
-//            }
-
             var phial = phials[index];
             if (phial == null || phial.getAmount() < 1) {
                 continue;
             }
             renderEssentia(renderer, tile, phial, positionedLiquidBounds[index], x, y, z);
         }
-    }
-
-    private void renderPhialTube(TileEntityPhialDisplay tile, RenderBlocks renderer, BlockBounds bounds, int x, int y, int z) {
-        final var tubeIcon = ((BlockTube) ConfigBlocks.blockTube).icon[0];
-
-        blockPhialDisplay.setBlockBounds(bounds);
-        renderer.setOverrideBlockTexture(tubeIcon);
-
-        ScaledRenderHelper.renderStandardBlock(renderer, blockPhialDisplay, x, y, z);
-
-        renderer.clearOverrideBlockTexture();
-        blockPhialDisplay.setBlockBoundsBasedOnState(tile.getWorldObj(), x, y, z);
     }
 
     private void renderEssentia(RenderBlocks renderer, TileEntityPhialDisplay te, StoragePhial phial,

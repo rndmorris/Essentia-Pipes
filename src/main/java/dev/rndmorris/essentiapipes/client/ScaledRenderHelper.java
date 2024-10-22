@@ -2503,6 +2503,15 @@ public class ScaledRenderHelper {
         return flag;
     }
 
+    public static void renderAllFaces(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon) {
+        renderFaceXNeg(renderer, block, x, y, z, icon);
+        renderFaceXPos(renderer, block, x, y, z, icon);
+        renderFaceYNeg(renderer, block, x, y, z, icon);
+        renderFaceYPos(renderer, block, x, y, z, icon);
+        renderFaceZNeg(renderer, block, x, y, z, icon);
+        renderFaceZPos(renderer, block, x, y, z, icon);
+    }
+
     /**
      * Renders the given texture to the bottom face of the block. Args: block, x, y, z, texture
      */

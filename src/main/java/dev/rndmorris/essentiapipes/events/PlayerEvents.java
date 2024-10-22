@@ -1,12 +1,11 @@
 package dev.rndmorris.essentiapipes.events;
 
-import cpw.mods.fml.common.eventhandler.Event;
-import dev.rndmorris.essentiapipes.EssentiaPipes;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import dev.rndmorris.essentiapipes.blocks.BlockPhialDisplay;
 import dev.rndmorris.essentiapipes.tile.TileEntityPhialDisplay;
@@ -42,7 +41,7 @@ public class PlayerEvents {
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        final var stack =event.entityPlayer.getHeldItem();
+        final var stack = event.entityPlayer.getHeldItem();
         if (isPhial(stack)) {
             addPhialToPhialDisplay(event);
             return;
@@ -91,18 +90,26 @@ public class PlayerEvents {
         var z = event.z;
         var tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display : null;
         if (world.getBlock(x, y, z) == block && tileEntity != null && tileEntity.canAddPhial()) {
-            // add a phial to an existing block
+            // we're directly targeting a phial display that can accept a new phial
             placed = tileEntity.addPhial(heldItem);
         } else {
             x = x + face.offsetX;
             y = y + face.offsetY;
             z = z + face.offsetZ;
-            if (block.canPlaceBlockAt(world, x, y, z)) {
-                // place a new block
-                world.setBlock(x, y, z, block);
-                tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display : null;
-                if (tileEntity != null) {
-                    placed = tileEntity.addPhial(heldItem);
+
+            tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display : null;
+            if (world.getBlock(x, y, z) == block && tileEntity != null && tileEntity.canAddPhial()) {
+                // the block in front of what we're targeting is a phial display that can accept a new phial
+                placed = tileEntity.addPhial(heldItem);
+            }
+            else {
+                if (block.canPlaceBlockAt(world, x, y, z)) {
+                    // the block in front of what we're targeting can be replaced with a new phial display
+                    world.setBlock(x, y, z, block);
+                    tileEntity = world.getTileEntity(x, y, z) instanceof TileEntityPhialDisplay display ? display : null;
+                    if (tileEntity != null) {
+                        placed = tileEntity.addPhial(heldItem);
+                    }
                 }
             }
         }
@@ -140,6 +147,11 @@ public class PlayerEvents {
         if (!player.capabilities.isCreativeMode) {
             event.entityPlayer.getHeldItem().stackSize -= 1;
             event.entityPlayer.inventoryContainer.detectAndSendChanges();
+        }
+        final var world = event.world;
+        if (world.isRemote) {
+            world.markBlockRangeForRenderUpdate(x, y, z, x, y, z);
+            player.swingItem();
         }
     }
 }
