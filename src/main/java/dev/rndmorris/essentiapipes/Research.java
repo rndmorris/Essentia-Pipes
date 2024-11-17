@@ -49,10 +49,8 @@ public class Research {
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.3"),
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.4"),
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.5"),
-                        new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.6"),
-                        new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.7"))
+                        new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.6"))
                     .setParentsHidden(previousResearch)
-                    .setAutoUnlock()
                     .registerResearchItem();
             previousResearch = PIPES_BASIC;
         }
@@ -66,13 +64,12 @@ public class Research {
                     .add(Aspect.VOID, 3),
                 0,
                 0,
-                2,
+                1,
                 new ItemStack(Item.getItemFromBlock(BlockPipeSegment.pipe_segment_thaumium)))
                     .setPages(
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_THAUMIUM.1"),
                         new ResearchPage(Recipes.thaumiumPipeRecipe))
                     .setParents(previousResearch, "ARMORFORTRESS")
-                    .setAutoUnlock()
                     .registerResearchItem();
             previousResearch = PIPES_THAUMIUM;
         }
@@ -86,13 +83,12 @@ public class Research {
                     .add(Aspect.VOID, 5),
                 0,
                 2,
-                3,
+                2,
                 new ItemStack(Item.getItemFromBlock(BlockPipeSegment.pipe_segment_voidmetal)))
                     .setPages(
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_VOIDMETAL.1"),
                         new ResearchPage(Recipes.voidmetalPipeRecipe),
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_VOIDMETAL.2"))
-                    .setAutoUnlock()
                     .setParents(previousResearch, "ESSENTIARESERVOIR", "HUNGRYCHEST")
                     .registerResearchItem();
         }
