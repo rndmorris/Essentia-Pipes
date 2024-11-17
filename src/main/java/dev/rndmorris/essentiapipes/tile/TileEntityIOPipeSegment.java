@@ -18,6 +18,8 @@ import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.IAspectContainer;
 import thaumcraft.api.aspects.IEssentiaTransport;
 
+import static dev.rndmorris.essentiapipes.EssentiaPipes.LOG;
+
 public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSegment {
 
     public static final String CONNECTIONS = "connections";
@@ -181,27 +183,32 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public void updateEntity() {
-        if (rescanTickOffset < 0) {
-            rescanTickOffset = worldObj.rand.nextInt(halfCycle);
-        }
-        if (requestTickOffset < 0) {
-            requestTickOffset = worldObj.rand.nextInt(quarterCycle);
-        }
-        final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
+        try {
+            if (rescanTickOffset < 0) {
+                rescanTickOffset = worldObj.rand.nextInt(halfCycle);
+            }
+            if (requestTickOffset < 0) {
+                requestTickOffset = worldObj.rand.nextInt(quarterCycle);
+            }
+            final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
 
-        // rescan valid connections (because sometimes things seem to break)
-        if (step < halfCycle && step % halfCycle == rescanTickOffset) {
-            rebuildIOConnections();
-            return;
+            // rescan valid connections (because sometimes things seem to break)
+            if (step < halfCycle && step % halfCycle == rescanTickOffset) {
+                rebuildIOConnections();
+                return;
+            }
+            // send requests (spread out across multiple ticks)
+            if (step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset) {
+                sendEssentiaRequests();
+                return;
+            }
+            if (step % quarterCycle == requestTickOffset) {
+                distributeEssentia();
+                return;
+            }
         }
-        // send requests (spread out across multiple ticks)
-        if (step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset) {
-            sendEssentiaRequests();
-            return;
-        }
-        if (step % quarterCycle == requestTickOffset) {
-            distributeEssentia();
-            return;
+        catch (Exception ex) {
+            LOG.catching(ex);
         }
     }
 
