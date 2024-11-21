@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
 import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
+import thaumcraft.api.ThaumcraftApi;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.AspectList;
 import thaumcraft.api.research.ResearchCategories;
@@ -49,7 +50,8 @@ public class Research {
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.3"),
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.4"),
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.5"),
-                        new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.6"))
+                        new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.6"),
+                        new ResearchPage("tc.research_page.essentiapipes:PIPES_BASIC.7"))
                     .setParentsHidden(previousResearch)
                     .registerResearchItem();
             previousResearch = PIPES_BASIC;
@@ -69,7 +71,7 @@ public class Research {
                     .setPages(
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_THAUMIUM.1"),
                         new ResearchPage(Recipes.thaumiumPipeRecipe))
-                    .setParents(previousResearch, "ARMORFORTRESS")
+                    .setParents(previousResearch, "THAUMIUM")
                     .registerResearchItem();
             previousResearch = PIPES_THAUMIUM;
         }
@@ -89,8 +91,9 @@ public class Research {
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_VOIDMETAL.1"),
                         new ResearchPage(Recipes.voidmetalPipeRecipe),
                         new ResearchPage("tc.research_page.essentiapipes:PIPES_VOIDMETAL.2"))
-                    .setParents(previousResearch, "ESSENTIARESERVOIR", "HUNGRYCHEST")
+                    .setParents(previousResearch, "ESSENTIARESERVOIR")
                     .registerResearchItem();
+            ThaumcraftApi.addWarpToResearch(PIPES_VOIDMETAL, 2);
         }
     }
 
