@@ -1,5 +1,7 @@
 package dev.rndmorris.essentiapipes.tile;
 
+import static dev.rndmorris.essentiapipes.EssentiaPipes.LOG;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -181,27 +183,31 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public void updateEntity() {
-        if (rescanTickOffset < 0) {
-            rescanTickOffset = worldObj.rand.nextInt(halfCycle);
-        }
-        if (requestTickOffset < 0) {
-            requestTickOffset = worldObj.rand.nextInt(quarterCycle);
-        }
-        final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
+        try {
+            if (rescanTickOffset < 0) {
+                rescanTickOffset = worldObj.rand.nextInt(halfCycle);
+            }
+            if (requestTickOffset < 0) {
+                requestTickOffset = worldObj.rand.nextInt(quarterCycle);
+            }
+            final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
 
-        // rescan valid connections (because sometimes things seem to break)
-        if (step < halfCycle && step % halfCycle == rescanTickOffset) {
-            rebuildIOConnections();
-            return;
-        }
-        // send requests (spread out across multiple ticks)
-        if (step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset) {
-            sendEssentiaRequests();
-            return;
-        }
-        if (step % quarterCycle == requestTickOffset) {
-            distributeEssentia();
-            return;
+            // rescan valid connections (because sometimes things seem to break)
+            if (step < halfCycle && step % halfCycle == rescanTickOffset) {
+                rebuildIOConnections();
+                return;
+            }
+            // send requests (spread out across multiple ticks)
+            if (step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset) {
+                sendEssentiaRequests();
+                return;
+            }
+            if (step % quarterCycle == requestTickOffset) {
+                distributeEssentia();
+                return;
+            }
+        } catch (Exception ex) {
+            LOG.catching(ex);
         }
     }
 

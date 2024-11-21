@@ -6,17 +6,17 @@ import net.minecraftforge.common.config.Configuration;
 
 public class Config {
 
-    public static int cycleLengthBasic = 20;
+    public static int cycleLengthBasic = 80;
     public static int cycleLengthThaumium = 40;
-    public static int cycleLengthVoidmetal = 80;
+    public static int cycleLengthVoidmetal = 20;
 
     public static boolean pipeEnabledBasic = true;
     public static boolean pipeEnabledThaumium = true;
     public static boolean pipeEnabledVoidmetal = true;
 
-    public static int transferRateBasic = 4;
+    public static int transferRateBasic = 16;
     public static int transferRateThaumium = 8;
-    public static int transferRateVoidmetal = 16;
+    public static int transferRateVoidmetal = 4;
 
     public static final String CATEGORY_PIPE_BASIC = "Basic Pipe";
     public static final String CATEGORY_PIPE_THAUMIUM = "Thaumium Pipe";
