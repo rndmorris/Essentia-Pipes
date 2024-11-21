@@ -53,6 +53,11 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     }
 
     private void sendEssentiaRequests() {
+
+        if (isRedstonePowered()) {
+            return;
+        }
+
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var outgoingRequest = getRequestFor(dir);
             if (outgoingRequest == null) {
@@ -103,6 +108,11 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     }
 
     private void distributeEssentia() {
+
+        if (isRedstonePowered()) {
+            return;
+        }
+
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var request = incomingRequests.getRequest(dir);
             if (request == null) {
@@ -139,9 +149,6 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
             incomingRequests.setRequest(dir, null);
             markDirty(true);
         }
-
-        incomingRequests.clear();
-        markDirty(true);
     }
 
     private Aspect pickAspectToTake(IEssentiaTransport source, ForgeDirection takeFromFace) {
@@ -177,6 +184,22 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
         return transport;
     }
 
+    private boolean isDistributePhase(int step) {
+        return step % quarterCycle == requestTickOffset;
+    }
+
+    private boolean isRescanPhase(int step) {
+        return step < halfCycle && step % halfCycle == rescanTickOffset;
+    }
+
+    private boolean isRedstonePowered() {
+        return worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord);
+    }
+
+    private boolean isRequestPhase(int step) {
+        return step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset;
+    }
+
     ///
     /// Overrides
     ///
@@ -190,20 +213,23 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
             if (requestTickOffset < 0) {
                 requestTickOffset = worldObj.rand.nextInt(quarterCycle);
             }
+
             final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
 
             // rescan valid connections (because sometimes things seem to break)
-            if (step < halfCycle && step % halfCycle == rescanTickOffset) {
+            if (isRescanPhase(step)) {
                 rebuildIOConnections();
                 return;
             }
             // send requests (spread out across multiple ticks)
-            if (step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset) {
+            if (isRequestPhase(step)) {
                 sendEssentiaRequests();
                 return;
             }
-            if (step % quarterCycle == requestTickOffset) {
+            if (isDistributePhase(step)) {
                 distributeEssentia();
+                incomingRequests.clear();
+                markDirty(true);
                 return;
             }
         } catch (Exception ex) {
@@ -303,6 +329,11 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public boolean evaluateEssentiaRequest(EssentiaRequest incomingRequest) {
+
+        if (isRedstonePowered()) {
+            return false;
+        }
+
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             final var sourceFace = dir.getOpposite();
             final var potentialSource = getEssentiaTransport(dir);
