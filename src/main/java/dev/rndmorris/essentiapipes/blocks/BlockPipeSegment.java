@@ -1,7 +1,11 @@
 package dev.rndmorris.essentiapipes.blocks;
 
+import static dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer.INSET;
+import static dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer.R_INSET;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
@@ -337,6 +341,26 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         if (!(neighbor instanceof IPipeSegment) && verifyIOState(world, x, y, z)) {
             PipeHelper.notifySegmentAddedOrChanged(world, x, y, z);
         }
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void randomDisplayTick(World world, int x, int y, int z, Random random) {
+        final var metadata = world.getBlockMetadata(x, y, z);
+        if (!(isIOSegment(metadata) && world.isBlockIndirectlyGettingPowered(x, y, z))) {
+            return;
+        }
+
+        final var posMin = R_INSET - INSET;
+        final var pX = x + posMin + random.nextFloat() * R_INSET;
+        final var pY = y + posMin + random.nextFloat() * R_INSET;
+        final var pZ = z + posMin + random.nextFloat() * R_INSET;
+
+        final var vX = 1;
+        final var vY = .2F;
+        final var vZ = 0F;
+
+        world.spawnParticle("reddust", pX, pY, pZ, vX, vY, vZ);
     }
 
     @Override
