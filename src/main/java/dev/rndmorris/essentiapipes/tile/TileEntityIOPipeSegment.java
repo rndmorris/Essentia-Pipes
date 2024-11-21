@@ -143,7 +143,13 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
             final var amountTaken = source.takeEssentia(transferAspect, amountAdded, takeFromFace);
 
             if (amountAdded > amountTaken) {
-                LOG.error("({}, {}, {}): Added ({}) more than it could take ({}). This should not happen.", xCoord, yCoord, zCoord, amountAdded, amountTaken);
+                LOG.error(
+                    "({}, {}, {}): Added ({}) more than it could take ({}). This should not happen.",
+                    xCoord,
+                    yCoord,
+                    zCoord,
+                    amountAdded,
+                    amountTaken);
             }
         }
     }
