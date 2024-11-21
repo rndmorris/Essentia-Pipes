@@ -398,6 +398,7 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
         final var foundConnections = PipeHelper.findIOPipeSegments(PipeHelper.SearchType.BreadthFirst, here);
 
         connections.clear();
+        incomingRequests.clear();
         for (var ci : foundConnections) {
             if (here.equals(ci.coordinate())) {
                 continue;
