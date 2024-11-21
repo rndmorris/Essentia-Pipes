@@ -1,5 +1,7 @@
 package dev.rndmorris.essentiapipes.tile;
 
+import static dev.rndmorris.essentiapipes.EssentiaPipes.LOG;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,8 +19,6 @@ import thaumcraft.api.TileThaumcraft;
 import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.IAspectContainer;
 import thaumcraft.api.aspects.IEssentiaTransport;
-
-import static dev.rndmorris.essentiapipes.EssentiaPipes.LOG;
 
 public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSegment {
 
@@ -206,8 +206,7 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
                 distributeEssentia();
                 return;
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             LOG.catching(ex);
         }
     }
