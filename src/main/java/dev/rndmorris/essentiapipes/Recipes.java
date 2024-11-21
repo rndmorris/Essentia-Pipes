@@ -24,7 +24,7 @@ public class Recipes {
                 Research.PIPES_BASIC,
                 basicPipe,
                 previousPipe,
-                new AspectList().add(Aspect.METAL, 1)
+                new AspectList().add(Aspect.MECHANISM, 1)
                     .add(Aspect.VOID, 1));
             previousPipe = basicPipe;
         }
@@ -36,7 +36,7 @@ public class Recipes {
                 thaumiumPipe,
                 previousPipe,
                 new AspectList().add(Aspect.MAGIC, 1)
-                    .add(Aspect.METAL, 1)
+                    .add(Aspect.MECHANISM, 1)
                     .add(Aspect.VOID, 1));
             previousPipe = thaumiumPipe;
         }
@@ -48,7 +48,7 @@ public class Recipes {
                 voidmetalPipe,
                 previousPipe,
                 new AspectList().add(Aspect.ELDRITCH, 1)
-                    .add(Aspect.METAL, 1)
+                    .add(Aspect.MECHANISM, 1)
                     .add(Aspect.VOID, 1));
             previousPipe = voidmetalPipe;
         }
