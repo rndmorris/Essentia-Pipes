@@ -136,18 +136,15 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
             }
 
             // Some containers (e.g. jars) don't like giving essentia when aspect is null
-            final var takeAspect = request.aspect != null ? request.aspect : pickAspectToTake(source, takeFromFace);
-            final var takeAmount = calculateAmountToTake(source, takeFromFace, takeAspect);
-            final var amountTaken = source.takeEssentia(takeAspect, takeAmount, takeFromFace);
-            final var amountAdded = destination.addEssentia(takeAspect, amountTaken, request.destinationFace);
+            final var transferAspect = request.aspect != null ? request.aspect : pickAspectToTake(source, takeFromFace);
+            final var takeAmount = calculateAmountToTake(source, takeFromFace, transferAspect);
 
-            final var leftovers = amountTaken - amountAdded;
-            if (leftovers > 0) {
-                // return any leftovers
-                source.addEssentia(takeAspect, leftovers, takeFromFace);
+            final var amountAdded = destination.addEssentia(transferAspect, takeAmount, request.destinationFace);
+            final var amountTaken = source.takeEssentia(transferAspect, amountAdded, takeFromFace);
+
+            if (amountAdded > amountTaken) {
+                LOG.error("({}, {}, {}): Added ({}) more than it could take ({}). This should not happen.", xCoord, yCoord, zCoord, amountAdded, amountTaken);
             }
-            incomingRequests.setRequest(dir, null);
-            markDirty(true);
         }
     }
 
