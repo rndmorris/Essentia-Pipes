@@ -205,19 +205,29 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
         return step < (halfCycle() + quarterCycle()) && step % quarterCycle() == requestTickOffset;
     }
 
-    private void updateRates() {
+    private void updateCycleLength() {
         final var thisBlock = worldObj.getBlock(xCoord, yCoord, zCoord);
         if (thisBlock == BlockPipeSegment.pipe_segment_thaumium) {
             this.cycleLength = Config.cycleLengthThaumium;
-            this.transferRate = Config.transferRateThaumium;
             return;
         }
         if (thisBlock == BlockPipeSegment.pipe_segment_voidmetal) {
             this.cycleLength = Config.cycleLengthVoidmetal;
-            this.transferRate = Config.transferRateVoidmetal;
             return;
         }
         this.cycleLength = Config.cycleLengthBasic;
+    }
+
+    private void updateTransferRate() {
+        final var thisBlock = worldObj.getBlock(xCoord, yCoord, zCoord);
+        if (thisBlock == BlockPipeSegment.pipe_segment_thaumium) {
+            this.transferRate = Config.transferRateThaumium;
+            return;
+        }
+        if (thisBlock == BlockPipeSegment.pipe_segment_voidmetal) {
+            this.transferRate = Config.transferRateVoidmetal;
+            return;
+        }
         this.transferRate = Config.transferRateBasic;
     }
 
@@ -227,18 +237,22 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public void updateEntity() {
-        if (cycleLength < 0 || transferRate < 0) {
-            updateRates();
+        if (cycleLength < 0) {
+            updateCycleLength();
+        }
+        if (transferRate < 0) {
+            updateTransferRate();
+        }
+        if (rescanTickOffset < 0) {
+            rescanTickOffset = worldObj.rand.nextInt(halfCycle());
+            markDirty(true);
+        }
+        if (requestTickOffset < 0) {
+            requestTickOffset = worldObj.rand.nextInt(quarterCycle());
+            markDirty(true);
         }
 
         try {
-            if (rescanTickOffset < 0) {
-                rescanTickOffset = worldObj.rand.nextInt(halfCycle());
-            }
-            if (requestTickOffset < 0) {
-                requestTickOffset = worldObj.rand.nextInt(quarterCycle());
-            }
-
             final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
 
             // rescan valid connections (because sometimes things seem to break)
@@ -254,6 +268,8 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
             if (isDistributePhase(step)) {
                 distributeEssentia();
                 incomingRequests.clear();
+                rescanTickOffset = -1;
+                requestTickOffset = -1;
                 markDirty(true);
                 return;
             }
