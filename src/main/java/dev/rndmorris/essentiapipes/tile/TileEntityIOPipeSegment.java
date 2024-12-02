@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import dev.rndmorris.essentiapipes.Config;
 import dev.rndmorris.essentiapipes.EssentiaPipes;
 import dev.rndmorris.essentiapipes.api.EssentiaRequest;
 import dev.rndmorris.essentiapipes.api.IIOPipeSegment;
@@ -24,6 +25,8 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     public static final String CONNECTIONS = "connections";
     public static final String ID = EssentiaPipes.modid("IOPipeSegment");
+    public static final String RESCAN_OFFSET = "rescanTickOffset";
+    public static final String REQUEST_OFFSET = "requestTickOffset";
     public static final String REQUESTS = "requests";
 
     public final ConnectionSet connections = new ConnectionSet();
@@ -32,17 +35,16 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     private int rescanTickOffset = -1;
     private int requestTickOffset = -1;
     private WorldCoordinate coordinate;
-    private final int cycleLength;
-    private final int halfCycle;
-    private final int quarterCycle;
-    private final int transferRate;
 
-    public TileEntityIOPipeSegment(int cycleLength, int transferRate) {
-        super();
-        this.cycleLength = cycleLength;
-        this.halfCycle = cycleLength / 2;
-        this.quarterCycle = cycleLength / 4;
-        this.transferRate = transferRate;
+    private int cycleLength = -1;
+    private int transferRate = -1;
+
+    private int halfCycle() {
+        return cycleLength / 2;
+    }
+
+    private int quarterCycle() {
+        return cycleLength / 4;
     }
 
     public void markDirty(boolean internal) {
@@ -188,11 +190,11 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     }
 
     private boolean isDistributePhase(int step) {
-        return step % quarterCycle == requestTickOffset;
+        return step % quarterCycle() == requestTickOffset;
     }
 
     private boolean isRescanPhase(int step) {
-        return step < halfCycle && step % halfCycle == rescanTickOffset;
+        return step < halfCycle() && step % halfCycle() == rescanTickOffset;
     }
 
     private boolean isRedstonePowered() {
@@ -200,7 +202,33 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
     }
 
     private boolean isRequestPhase(int step) {
-        return step < (halfCycle + quarterCycle) && step % quarterCycle == requestTickOffset;
+        return step < (halfCycle() + quarterCycle()) && step % quarterCycle() == requestTickOffset;
+    }
+
+    private void updateCycleLength() {
+        final var thisBlock = worldObj.getBlock(xCoord, yCoord, zCoord);
+        if (thisBlock == BlockPipeSegment.pipe_segment_thaumium) {
+            this.cycleLength = Config.cycleLengthThaumium;
+            return;
+        }
+        if (thisBlock == BlockPipeSegment.pipe_segment_voidmetal) {
+            this.cycleLength = Config.cycleLengthVoidmetal;
+            return;
+        }
+        this.cycleLength = Config.cycleLengthBasic;
+    }
+
+    private void updateTransferRate() {
+        final var thisBlock = worldObj.getBlock(xCoord, yCoord, zCoord);
+        if (thisBlock == BlockPipeSegment.pipe_segment_thaumium) {
+            this.transferRate = Config.transferRateThaumium;
+            return;
+        }
+        if (thisBlock == BlockPipeSegment.pipe_segment_voidmetal) {
+            this.transferRate = Config.transferRateVoidmetal;
+            return;
+        }
+        this.transferRate = Config.transferRateBasic;
     }
 
     ///
@@ -209,14 +237,22 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
 
     @Override
     public void updateEntity() {
-        try {
-            if (rescanTickOffset < 0) {
-                rescanTickOffset = worldObj.rand.nextInt(halfCycle);
-            }
-            if (requestTickOffset < 0) {
-                requestTickOffset = worldObj.rand.nextInt(quarterCycle);
-            }
+        if (cycleLength < 0) {
+            updateCycleLength();
+        }
+        if (transferRate < 0) {
+            updateTransferRate();
+        }
+        if (rescanTickOffset < 0) {
+            rescanTickOffset = worldObj.rand.nextInt(halfCycle());
+            markDirty(true);
+        }
+        if (requestTickOffset < 0) {
+            requestTickOffset = worldObj.rand.nextInt(quarterCycle());
+            markDirty(true);
+        }
 
+        try {
             final var step = (int) (worldObj.getTotalWorldTime() % cycleLength);
 
             // rescan valid connections (because sometimes things seem to break)
@@ -232,6 +268,8 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
             if (isDistributePhase(step)) {
                 distributeEssentia();
                 incomingRequests.clear();
+                rescanTickOffset = -1;
+                requestTickOffset = -1;
                 markDirty(true);
                 return;
             }
@@ -251,6 +289,12 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
         coordinate = null;
         connections.readFromNBT(compound.getCompoundTag(CONNECTIONS));
         incomingRequests.readFromNBT(compound.getCompoundTag(REQUESTS));
+        if (compound.hasKey(RESCAN_OFFSET)) {
+            rescanTickOffset = compound.getInteger(RESCAN_OFFSET);
+        }
+        if (compound.hasKey(REQUEST_OFFSET)) {
+            requestTickOffset = compound.getInteger(REQUEST_OFFSET);
+        }
     }
 
     @Override
@@ -262,6 +306,8 @@ public class TileEntityIOPipeSegment extends TileThaumcraft implements IIOPipeSe
         final var requestsTag = new NBTTagCompound();
         incomingRequests.writeToNBT(requestsTag);
         compound.setTag(REQUESTS, requestsTag);
+        compound.setInteger(RESCAN_OFFSET, rescanTickOffset);
+        compound.setInteger(REQUEST_OFFSET, requestTickOffset);
     }
 
     ///
