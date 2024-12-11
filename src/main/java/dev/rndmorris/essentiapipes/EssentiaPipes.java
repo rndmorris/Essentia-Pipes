@@ -1,5 +1,8 @@
 package dev.rndmorris.essentiapipes;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,5 +46,10 @@ public class EssentiaPipes {
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit(event);
+    }
+
+    public static void breakMouse() {
+        Minecraft.getMinecraft()
+            .displayGuiScreen(new GuiChat());
     }
 }

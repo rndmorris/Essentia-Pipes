@@ -1,7 +1,7 @@
 package dev.rndmorris.essentiapipes.blocks;
 
-import static dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer.INSET;
-import static dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer.R_INSET;
+import static dev.rndmorris.essentiapipes.client.Renderer.INSET;
+import static dev.rndmorris.essentiapipes.client.Renderer.R_INSET;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ import dev.rndmorris.essentiapipes.api.IPipeSegment;
 import dev.rndmorris.essentiapipes.api.PipeColor;
 import dev.rndmorris.essentiapipes.api.PipeHelper;
 import dev.rndmorris.essentiapipes.api.WorldCoordinate;
-import dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer;
+import dev.rndmorris.essentiapipes.client.Renderer;
 import dev.rndmorris.essentiapipes.items.ItemBlockPipeSegment;
 import dev.rndmorris.essentiapipes.tile.TileEntityIOPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
@@ -54,6 +54,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     public static BlockPipeSegment pipe_segment;
     public static BlockPipeSegment pipe_segment_thaumium;
     public static BlockPipeSegment pipe_segment_voidmetal;
+
+    public static int renderId;
 
     public static void preInit() {
         if (Config.pipeEnabledBasic) {
@@ -143,9 +145,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     private float[] calcBoundingBox(World world, int x, int y, int z) {
-        float minX = BlockPipeSegmentRenderer.INSET_VALVE, maxX = BlockPipeSegmentRenderer.R_INSET_VALVE,
-            minY = BlockPipeSegmentRenderer.INSET_VALVE, maxY = BlockPipeSegmentRenderer.R_INSET_VALVE,
-            minZ = BlockPipeSegmentRenderer.INSET_VALVE, maxZ = BlockPipeSegmentRenderer.R_INSET_VALVE;
+        float minX = Renderer.INSET_VALVE, maxX = Renderer.R_INSET_VALVE, minY = Renderer.INSET_VALVE,
+            maxY = Renderer.R_INSET_VALVE, minZ = Renderer.INSET_VALVE, maxZ = Renderer.R_INSET_VALVE;
         if (world != null) {
             final var here = new WorldCoordinate(world.provider.dimensionId, x, y, z);
             for (var dir : ForgeDirection.VALID_DIRECTIONS) {
@@ -209,7 +210,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public int getRenderType() {
-        return BlockPipeSegmentRenderer.renderId;
+        return renderId;
     }
 
     @Override

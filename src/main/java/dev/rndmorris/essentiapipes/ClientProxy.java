@@ -1,8 +1,8 @@
 package dev.rndmorris.essentiapipes;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer;
 import dev.rndmorris.essentiapipes.client.CreativeTab;
+import dev.rndmorris.essentiapipes.client.Renderer;
 
 @SuppressWarnings("unused")
 public class ClientProxy extends CommonProxy {
@@ -22,7 +22,7 @@ public class ClientProxy extends CommonProxy {
     // Don't forget to call the super methods as well.
 
     private void registerBlockRenderers() {
-        BlockPipeSegmentRenderer.init();
+        Renderer.init();
     }
 
     @Override
