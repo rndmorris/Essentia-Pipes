@@ -11,6 +11,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
@@ -137,6 +138,42 @@ public class BlockTinyJar extends BlockContainer {
         setBlockBounds(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
+    @Override
+    public boolean removedByPlayer(World world, EntityPlayer player, int x, int y, int z, boolean willHarvest) {
+        final var doDrops = !player.capabilities.isCreativeMode;
+        if (!player.isSneaking()) {
+            // to-do: spawn drops
+            return removeTinyJars(world, doDrops, x, y, z, JarPositions.corners());
+        }
+
+        final var targetJar = getTargetedTinyJar(world, x, y, z, player);
+        if (targetJar == null) {
+            return false;
+        }
+        return removeTinyJars(world, doDrops, x, y, z, targetJar);
+    }
+
+    private boolean removeTinyJars(World world, boolean dropBlocks, int x, int y, int z, JarPositions... jars) {
+        var metadata = world.getBlockMetadata(x, y, z);
+
+        for (var jar : jars) {
+            if (!jar.hasFlag(metadata)) {
+                continue;
+            }
+            if (dropBlocks) {
+                // to-do: do drops
+            }
+            // to-do: update tile
+            metadata = jar.unsetFlag(metadata);
+        }
+
+        if (metadata == 0) {
+            return world.setBlockToAir(x, y, z);
+        }
+        world.setBlockMetadataWithNotify(x, y, z, metadata, 1 & 2);
+        return false;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
@@ -181,7 +218,18 @@ public class BlockTinyJar extends BlockContainer {
 
     @SideOnly(Side.CLIENT)
     private AxisAlignedBB getTinyJarBB(World world, int x, int y, int z) {
-        final var player = Minecraft.getMinecraft().thePlayer;
+        final var targetedJar = getTargetedTinyJar(world, x, y, z, Minecraft.getMinecraft().thePlayer);
+
+        if (targetedJar != null) {
+            return targetedJar.place.translate(x, y, z)
+                .expandPixels(1, 0, 1, 1, 1, 1)
+                .toAxisAlignedBB();
+        }
+
+        return AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
+    }
+
+    private JarPositions getTargetedTinyJar(World world, int x, int y, int z, EntityPlayer player) {
         final var metadata = world.getBlockMetadata(x, y, z);
         final var corners = JarPositions.corners(metadata);
         final var cuboids = new ArrayList<IndexedCuboid6>(4);
@@ -199,11 +247,9 @@ public class BlockTinyJar extends BlockContainer {
         final var hit = rayTracer
             .rayTraceCuboids(new Vector3(startVec), new Vector3(endVec), cuboids, new BlockCoord(x, y, z), this);
         if (hit instanceof ExtendedMOP mop) {
-            return corners[(int) mop.data].place.translate(x, y, z)
-                .expandPixels(1, 0, 1, 1, 1, 1)
-                .toAxisAlignedBB();
+            return corners[(int) mop.data];
         }
-        return AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
+        return null;
     }
 
     @Override
@@ -238,7 +284,7 @@ public class BlockTinyJar extends BlockContainer {
 
         for (var index = 0; index < corners.length; ++index) {
             final var pos = corners[index];
-            if (pos.metadataContainsBitFlag(metadata)) {
+            if (pos.hasFlag(metadata)) {
                 cuboids.add(
                     new IndexedCuboid6(
                         index,
@@ -271,7 +317,7 @@ public class BlockTinyJar extends BlockContainer {
         public static JarPositions[] corners(int metadata) {
             final var result = new ArrayList<JarPositions>();
             for (var corner : corners()) {
-                if (corner.metadataContainsBitFlag(metadata)) {
+                if (corner.hasFlag(metadata)) {
                     result.add(corner);
                 }
             }
@@ -295,8 +341,25 @@ public class BlockTinyJar extends BlockContainer {
             };
         }
 
-        public boolean metadataContainsBitFlag(int metadata) {
+        public boolean hasFlag(int metadata) {
+            if (bitFlag <= 0) {
+                return false;
+            }
             return (metadata & bitFlag) == bitFlag;
+        }
+
+        public int setFlag(int metadata) {
+            if (bitFlag <= 0) {
+                return metadata;
+            }
+            return metadata | bitFlag;
+        }
+
+        public int unsetFlag(int metadata) {
+            if (bitFlag <= 0) {
+                return metadata;
+            }
+            return metadata & ~(bitFlag);
         }
     }
 }
