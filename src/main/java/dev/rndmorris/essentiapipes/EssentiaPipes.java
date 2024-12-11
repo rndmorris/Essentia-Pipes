@@ -48,8 +48,12 @@ public class EssentiaPipes {
         proxy.postInit(event);
     }
 
+    public static boolean shouldBreak = false;
+
     public static void breakMouse() {
-        Minecraft.getMinecraft()
-            .displayGuiScreen(new GuiChat());
+        if (shouldBreak) {
+            Minecraft.getMinecraft()
+                .displayGuiScreen(new GuiChat());
+        }
     }
 }

@@ -1,6 +1,10 @@
 package dev.rndmorris.essentiapipes;
 
+import net.minecraftforge.common.MinecraftForge;
+
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import dev.rndmorris.essentiapipes.blocks.BlockTinyJar;
 import dev.rndmorris.essentiapipes.client.CreativeTab;
 import dev.rndmorris.essentiapipes.client.Renderer;
 
@@ -13,15 +17,14 @@ public class ClientProxy extends CommonProxy {
         this.creativeTab = new CreativeTab();
     }
 
-    public void init(FMLInitializationEvent event) {
-        super.init(event);
-        registerBlockRenderers();
+    @Override
+    public void preInit(FMLPreInitializationEvent event) {
+        super.preInit(event);
+        MinecraftForge.EVENT_BUS.register(BlockTinyJar.instance);
     }
 
-    // Override CommonProxy methods here, if you want a different behaviour on the client (e.g. registering renders).
-    // Don't forget to call the super methods as well.
-
-    private void registerBlockRenderers() {
+    public void init(FMLInitializationEvent event) {
+        super.init(event);
         Renderer.init();
     }
 

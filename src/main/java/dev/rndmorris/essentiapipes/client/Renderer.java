@@ -51,7 +51,7 @@ public class Renderer implements ISimpleBlockRenderingHandler {
     }
 
     public void renderTinyJarInventory(BlockTinyJar block, RenderBlocks renderer) {
-        BlockTinyJar.Position.NIL.bounds.apply(block);
+        BlockTinyJar.JarPositions.NIL.place.apply(block);
         renderer.setRenderBoundsFromBlock(block);
         BlockRenderer.drawFaces(renderer, block, block.icon[0], false);
         BlockBounds.UNIT.apply(block);
@@ -176,13 +176,13 @@ public class Renderer implements ISimpleBlockRenderingHandler {
         // EssentiaPipes.breakMouse();
         final var metadata = world.getBlockMetadata(x, y, z);
         if (metadata == 0) {
-            BlockTinyJar.Position.NIL.bounds.apply(blockTinyJar);
+            BlockTinyJar.JarPositions.NIL.place.apply(blockTinyJar);
             renderAllFaces(blockTinyJar, x, y, z, blockTinyJar.icon[0], renderer);
             blockTinyJar.setBlockBoundsBasedOnState(world, x, y, z);
             return true;
         }
-        for (var pos : BlockTinyJar.Position.corners(metadata)) {
-            pos.bounds.apply(blockTinyJar);
+        for (var pos : BlockTinyJar.JarPositions.corners(metadata)) {
+            pos.place.apply(blockTinyJar);
             renderAllFaces(blockTinyJar, x, y, z, blockTinyJar.icon[0], renderer);
         }
         blockTinyJar.setBlockBoundsBasedOnState(world, x, y, z);
