@@ -181,7 +181,7 @@ public class Renderer implements ISimpleBlockRenderingHandler {
             blockTinyJar.setBlockBoundsBasedOnState(world, x, y, z);
             return true;
         }
-        for (var pos : BlockTinyJar.JarPositions.corners(metadata)) {
+        for (var pos : BlockTinyJar.JarPositions.occupiedPlaces(metadata)) {
             pos.place.apply(blockTinyJar);
             renderAllFaces(blockTinyJar, x, y, z, blockTinyJar.icon[0], renderer);
         }

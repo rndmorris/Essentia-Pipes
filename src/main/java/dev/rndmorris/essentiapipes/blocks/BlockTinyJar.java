@@ -3,9 +3,10 @@ package dev.rndmorris.essentiapipes.blocks;
 import static dev.rndmorris.essentiapipes.EssentiaPipes.modid;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -49,7 +50,6 @@ public class BlockTinyJar extends BlockContainer {
     }
 
     public final IIcon[] icon = new IIcon[1];
-    private final RayTracer rayTracer = RayTracer.instance();
 
     public BlockTinyJar() {
         super(Material.glass);
@@ -70,8 +70,8 @@ public class BlockTinyJar extends BlockContainer {
     }
 
     @Override
-    public void onPostBlockPlaced(World worldIn, int x, int y, int z, int meta) {
-        if (!canBlockStay(worldIn, x, y, z)) {
+    public void onNeighborBlockChange(World worldIn, int x, int y, int z, Block neighbor) {
+        if (worldIn.getBlockMetadata(x, y, z) == 0) {
             worldIn.setBlockToAir(x, y, z);
         }
     }
@@ -92,18 +92,6 @@ public class BlockTinyJar extends BlockContainer {
     }
 
     @Override
-    public boolean canBlockStay(World worldIn, int x, int y, int z) {
-        return worldIn.getBlockMetadata(x, y, z) != 0;
-    }
-
-    @Override
-    public void updateTick(World worldIn, int x, int y, int z, Random random) {
-        if (!canBlockStay(worldIn, x, y, z)) {
-            worldIn.setBlockToAir(x, y, z);
-        }
-    }
-
-    @Override
     public void registerBlockIcons(IIconRegister reg) {
         icon[0] = reg.registerIcon("minecraft:dirt");
     }
@@ -111,22 +99,22 @@ public class BlockTinyJar extends BlockContainer {
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, int x, int y, int z) {
         final var metadata = worldIn.getBlockMetadata(x, y, z);
-        final var corners = JarPositions.corners(metadata);
+        final var corners = JarPositions.occupiedPlaces(metadata);
 
-        if (corners.length < 1) {
+        if (corners.isEmpty()) {
             JarPositions.NIL.place.apply(this);
             return;
         }
 
-        var minX = (float) corners[0].place.minX;
-        var minY = (float) corners[0].place.minY;
-        var minZ = (float) corners[0].place.minZ;
-        var maxX = (float) corners[0].place.maxX;
-        var maxY = (float) corners[0].place.maxY;
-        var maxZ = (float) corners[0].place.maxZ;
+        var minX = (float) corners.get(0).place.minX;
+        var minY = (float) corners.get(0).place.minY;
+        var minZ = (float) corners.get(0).place.minZ;
+        var maxX = (float) corners.get(0).place.maxX;
+        var maxY = (float) corners.get(0).place.maxY;
+        var maxZ = (float) corners.get(0).place.maxZ;
 
-        for (var index = 1; index < corners.length; ++index) {
-            final var pos = corners[index];
+        for (var index = 1; index < corners.size(); ++index) {
+            final var pos = corners.get(index);
             minX = Float.min(minX, (float) pos.place.minX);
             minY = Float.min(minY, (float) pos.place.minY);
             minZ = Float.min(minZ, (float) pos.place.minZ);
@@ -142,8 +130,14 @@ public class BlockTinyJar extends BlockContainer {
     public boolean removedByPlayer(World world, EntityPlayer player, int x, int y, int z, boolean willHarvest) {
         final var doDrops = !player.capabilities.isCreativeMode;
         if (!player.isSneaking()) {
-            // to-do: spawn drops
-            return removeTinyJars(world, doDrops, x, y, z, JarPositions.corners());
+            return removeTinyJars(
+                world,
+                doDrops,
+                x,
+                y,
+                z,
+                JarPositions.allPlaces()
+                    .toArray(new JarPositions[0]));
         }
 
         final var targetJar = getTargetedTinyJar(world, x, y, z, player);
@@ -183,21 +177,21 @@ public class BlockTinyJar extends BlockContainer {
         }
 
         final var metadata = world.getBlockMetadata(x, y, z);
-        final var corners = JarPositions.corners(metadata);
+        final var corners = JarPositions.occupiedPlaces(metadata);
 
-        if (corners.length < 1) {
+        if (corners.isEmpty()) {
             return JarPositions.NIL.place.toAxisAlignedBB();
         }
 
-        var minX = (float) corners[0].place.minX;
-        var minY = (float) corners[0].place.minY;
-        var minZ = (float) corners[0].place.minZ;
-        var maxX = (float) corners[0].place.maxX;
-        var maxY = (float) corners[0].place.maxY;
-        var maxZ = (float) corners[0].place.maxZ;
+        var minX = (float) corners.get(0).place.minX;
+        var minY = (float) corners.get(0).place.minY;
+        var minZ = (float) corners.get(0).place.minZ;
+        var maxX = (float) corners.get(0).place.maxX;
+        var maxY = (float) corners.get(0).place.maxY;
+        var maxZ = (float) corners.get(0).place.maxZ;
 
-        for (var index = 1; index < corners.length; ++index) {
-            final var pos = corners[index];
+        for (var index = 1; index < corners.size(); ++index) {
+            final var pos = corners.get(index);
             minX = Float.min(minX, (float) pos.place.minX);
             minY = Float.min(minY, (float) pos.place.minY);
             minZ = Float.min(minZ, (float) pos.place.minZ);
@@ -231,23 +225,23 @@ public class BlockTinyJar extends BlockContainer {
 
     private JarPositions getTargetedTinyJar(World world, int x, int y, int z, EntityPlayer player) {
         final var metadata = world.getBlockMetadata(x, y, z);
-        final var corners = JarPositions.corners(metadata);
+        final var corners = JarPositions.occupiedPlaces(metadata);
         final var cuboids = new ArrayList<IndexedCuboid6>(4);
 
-        for (var index = 0; index < corners.length; ++index) {
+        for (var index = 0; index < corners.size(); ++index) {
             cuboids.add(
                 new IndexedCuboid6(
                     index,
-                    corners[index].place.translate(x, y, z)
+                    corners.get(index).place.translate(x, y, z)
                         .toCuboid6()));
         }
         final var startVec = RayTracer.getStartVec(player);
         final var endVec = RayTracer.getEndVec(player);
 
-        final var hit = rayTracer
+        final var hit = RayTracer.instance()
             .rayTraceCuboids(new Vector3(startVec), new Vector3(endVec), cuboids, new BlockCoord(x, y, z), this);
         if (hit instanceof ExtendedMOP mop) {
-            return corners[(int) mop.data];
+            return corners.get((int) mop.data);
         }
         return null;
     }
@@ -256,7 +250,7 @@ public class BlockTinyJar extends BlockContainer {
     public void addCollisionBoxesToList(World worldIn, int x, int y, int z, AxisAlignedBB mask,
         List<AxisAlignedBB> list, Entity collider) {
         final var metadata = worldIn.getBlockMetadata(x, y, z);
-        for (var corner : JarPositions.corners(metadata)) {
+        for (var corner : JarPositions.occupiedPlaces(metadata)) {
             final var cornerBB = corner.place.translate(x, y, z)
                 .toAxisAlignedBB();
             if (mask.intersectsWith(cornerBB)) {
@@ -279,11 +273,11 @@ public class BlockTinyJar extends BlockContainer {
     @Override
     public MovingObjectPosition collisionRayTrace(World worldIn, int x, int y, int z, Vec3 startVec, Vec3 endVec) {
         final var metadata = worldIn.getBlockMetadata(x, y, z);
-        final var corners = JarPositions.corners();
+        final var corners = JarPositions.allPlaces();
         final var cuboids = new ArrayList<IndexedCuboid6>(4);
 
-        for (var index = 0; index < corners.length; ++index) {
-            final var pos = corners[index];
+        for (var index = 0; index < corners.size(); ++index) {
+            final var pos = corners.get(index);
             if (pos.hasFlag(metadata)) {
                 cuboids.add(
                     new IndexedCuboid6(
@@ -293,8 +287,24 @@ public class BlockTinyJar extends BlockContainer {
             }
         }
 
-        return rayTracer
+        return RayTracer.instance()
             .rayTraceCuboids(new Vector3(startVec), new Vector3(endVec), cuboids, new BlockCoord(x, y, z), this);
+    }
+
+    public List<JarPositions> emptyJarSpaces(IBlockAccess world, int x, int y, int z) {
+        if (!(world.getBlock(x, y, z) instanceof BlockTinyJar)) {
+            return new ArrayList<>();
+        }
+        final var metadata = world.getBlockMetadata(x, y, z);
+        return JarPositions.emptyPlaces(metadata);
+    }
+
+    public List<JarPositions> occupiedJarSpaces(IBlockAccess world, int x, int y, int z) {
+        if (!(world.getBlock(x, y, z) instanceof BlockTinyJar)) {
+            return new ArrayList<>();
+        }
+        final var metadata = world.getBlockMetadata(x, y, z);
+        return JarPositions.occupiedPlaces(metadata);
     }
 
     public enum JarPositions {
@@ -310,18 +320,30 @@ public class BlockTinyJar extends BlockContainer {
         public static final byte bitFlagSW = 0b0100;
         public static final byte bitFlagSE = 0b1000;
 
-        public static JarPositions[] corners() {
-            return new JarPositions[] { NW, NE, SW, SE, };
+        public static List<JarPositions> allPlaces() {
+            final var result = new ArrayList<JarPositions>(4);
+            Collections.addAll(result, NW, NE, SW, SE);
+            return result;
         }
 
-        public static JarPositions[] corners(int metadata) {
+        public static List<JarPositions> occupiedPlaces(int metadata) {
             final var result = new ArrayList<JarPositions>();
-            for (var corner : corners()) {
+            for (var corner : allPlaces()) {
                 if (corner.hasFlag(metadata)) {
                     result.add(corner);
                 }
             }
-            return result.toArray(new JarPositions[0]);
+            return result;
+        }
+
+        public static List<JarPositions> emptyPlaces(int metadata) {
+            final var result = new ArrayList<JarPositions>();
+            for (var corner : allPlaces()) {
+                if (!corner.hasFlag(metadata)) {
+                    result.add(corner);
+                }
+            }
+            return result;
         }
 
         public final byte bitFlag;

@@ -41,6 +41,22 @@ public class BlockBounds {
         this.maxZ = maxZ;
     }
 
+    public double[] getCenter() {
+        return new double[] { minX + (getLengthX() / 2), minY + (getLengthY() / 2), minZ + (getLengthZ() / 2), };
+    }
+
+    public double getLengthX() {
+        return Math.abs(maxX - minX);
+    }
+
+    public double getLengthY() {
+        return Math.abs(maxY - minY);
+    }
+
+    public double getLengthZ() {
+        return Math.abs(maxZ - minZ);
+    }
+
     public BlockBounds expand(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         return new BlockBounds(
             this.minX - minX,
