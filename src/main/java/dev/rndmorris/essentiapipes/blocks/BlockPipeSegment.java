@@ -1,8 +1,5 @@
 package dev.rndmorris.essentiapipes.blocks;
 
-import static dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer.INSET;
-import static dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer.R_INSET;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -34,7 +31,6 @@ import dev.rndmorris.essentiapipes.api.IPipeSegment;
 import dev.rndmorris.essentiapipes.api.PipeColor;
 import dev.rndmorris.essentiapipes.api.PipeHelper;
 import dev.rndmorris.essentiapipes.api.WorldCoordinate;
-import dev.rndmorris.essentiapipes.client.BlockPipeSegmentRenderer;
 import dev.rndmorris.essentiapipes.items.ItemBlockPipeSegment;
 import dev.rndmorris.essentiapipes.tile.TileEntityIOPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
@@ -54,6 +50,14 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     public static BlockPipeSegment pipe_segment;
     public static BlockPipeSegment pipe_segment_thaumium;
     public static BlockPipeSegment pipe_segment_voidmetal;
+
+    public static int renderId = -1;
+
+    public final static float PIXEL = 1F / 16F;
+    public final static float INSET = 6.5F * PIXEL;
+    public final static float R_INSET = 1F - INSET;
+    public final static float INSET_VALVE = 6 * PIXEL;
+    public final static float R_INSET_VALVE = 1F - INSET_VALVE;
 
     public static void preInit() {
         if (Config.pipeEnabledBasic) {
@@ -143,9 +147,8 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     private float[] calcBoundingBox(World world, int x, int y, int z) {
-        float minX = BlockPipeSegmentRenderer.INSET_VALVE, maxX = BlockPipeSegmentRenderer.R_INSET_VALVE,
-            minY = BlockPipeSegmentRenderer.INSET_VALVE, maxY = BlockPipeSegmentRenderer.R_INSET_VALVE,
-            minZ = BlockPipeSegmentRenderer.INSET_VALVE, maxZ = BlockPipeSegmentRenderer.R_INSET_VALVE;
+        float minX = INSET_VALVE, maxX = R_INSET_VALVE, minY = INSET_VALVE, maxY = R_INSET_VALVE, minZ = INSET_VALVE,
+            maxZ = R_INSET_VALVE;
         if (world != null) {
             final var here = new WorldCoordinate(world.provider.dimensionId, x, y, z);
             for (var dir : ForgeDirection.VALID_DIRECTIONS) {
@@ -209,7 +212,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     @Override
     public int getRenderType() {
-        return BlockPipeSegmentRenderer.renderId;
+        return renderId;
     }
 
     @Override
