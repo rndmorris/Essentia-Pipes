@@ -1,5 +1,10 @@
 package dev.rndmorris.essentiapipes.client;
 
+import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.INSET;
+import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.INSET_VALVE;
+import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.R_INSET;
+import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.R_INSET_VALVE;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
@@ -24,6 +29,7 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
 
     public static void init() {
         renderId = RenderingRegistry.getNextAvailableRenderId();
+        BlockPipeSegment.renderId = renderId;
         instance = new BlockPipeSegmentRenderer();
         RenderingRegistry.registerBlockHandler(renderId, instance);
     }
@@ -35,12 +41,6 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
         renderer.setRenderBoundsFromBlock(block);
         BlockRenderer.drawFaces(renderer, block, icon, false);
     }
-
-    public final static float PIXEL = 1F / 16F;
-    public final static float INSET = 6.5F * PIXEL;
-    public final static float R_INSET = 1F - INSET;
-    public final static float INSET_VALVE = 6 * PIXEL;
-    public final static float R_INSET_VALVE = 1F - INSET_VALVE;
 
     @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
