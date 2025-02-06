@@ -61,13 +61,13 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
 
     public static void preInit() {
         if (Config.pipeEnabledBasic) {
-            pipe_segment = register(new BlockPipeSegment(), ID);
+            pipe_segment = register(new BlockPipeSegment(ID), ID);
         }
         if (Config.pipeEnabledThaumium) {
-            pipe_segment_thaumium = register(new BlockPipeSegmentThaumium(), ID_THAUMIUM);
+            pipe_segment_thaumium = register(new BlockPipeSegment(ID_THAUMIUM), ID_THAUMIUM);
         }
         if (Config.pipeEnabledVoidmetal) {
-            pipe_segment_voidmetal = register(new BlockPipeSegmentVoidmetal(), ID_VOIDMETAL);
+            pipe_segment_voidmetal = register(new BlockPipeSegment(ID_VOIDMETAL), ID_VOIDMETAL);
         }
 
         GameRegistry.registerTileEntity(TileEntityIOPipeSegment.class, TileEntityIOPipeSegment.ID);
@@ -133,13 +133,15 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         return false;
     }
 
+    private final String id;
     public final IIcon[] icons = new IIcon[PipeColor.COLORS.length];
 
     public final IIcon[] valveIcon = new IIcon[1];
     private final RayTracer rayTracer = new RayTracer();
 
-    protected BlockPipeSegment() {
+    protected BlockPipeSegment(String id) {
         super(Material.iron);
+        this.id = id;
         setHardness(0.5F);
         setResistance(10F);
         setStepSound(Block.soundTypeMetal);
@@ -373,7 +375,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     protected String getId() {
-        return ID;
+        return this.id;
     }
 
     @Override
