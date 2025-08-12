@@ -37,8 +37,7 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
     @Override
     public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
         final var icon = block.getIcon(0, metadata);
-        block.setBlockBounds(INSET, INSET, 0, R_INSET, R_INSET, 1);
-        renderer.setRenderBoundsFromBlock(block);
+        renderer.setRenderBounds(INSET, INSET, 0, R_INSET, R_INSET, 1);
         BlockRenderer.drawFaces(renderer, block, icon, false);
     }
 
@@ -103,33 +102,29 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
         var renderedAny = false;
         if (renderX) {
             renderedAny = true;
-            block.setBlockBounds(xAxisMinX, xAxisMinY, xAxisMinZ, xAxisMaxX, xAxisMaxY, xAxisMaxZ);
-            renderer.setRenderBoundsFromBlock(block);
+            renderer.setRenderBounds(xAxisMinX, xAxisMinY, xAxisMinZ, xAxisMaxX, xAxisMaxY, xAxisMaxZ);
             renderer.renderStandardBlock(block, x, y, z);
         }
         if (renderY) {
             renderedAny = true;
-            block.setBlockBounds(yAxisMinX, yAxisMinY, yAxisMinZ, yAxisMaxX, yAxisMaxY, yAxisMaxZ);
-            renderer.setRenderBoundsFromBlock(block);
+            renderer.setRenderBounds(yAxisMinX, yAxisMinY, yAxisMinZ, yAxisMaxX, yAxisMaxY, yAxisMaxZ);
             renderer.renderStandardBlock(block, x, y, z);
         }
         if (renderZ) {
             renderedAny = true;
-            block.setBlockBounds(zAxisMinX, zAxisMinY, zAxisMinZ, zAxisMaxX, zAxisMaxY, zAxisMaxZ);
-            renderer.setRenderBoundsFromBlock(block);
+            renderer.setRenderBounds(zAxisMinX, zAxisMinY, zAxisMinZ, zAxisMaxX, zAxisMaxY, zAxisMaxZ);
             renderer.renderStandardBlock(block, x, y, z);
         }
 
         if (!renderedAny) {
-            block.setBlockBounds(INSET, INSET, INSET, R_INSET, R_INSET, R_INSET);
-            renderer.setRenderBoundsFromBlock(block);
+            renderer.setRenderBounds(INSET, INSET, INSET, R_INSET, R_INSET, R_INSET);
             renderer.renderStandardBlock(block, x, y, z);
         }
 
         if (BlockPipeSegment.isIOSegment(metadata)) {
             renderer.overrideBlockTexture = pipeSegment.valveIcon[0];
-            block.setBlockBounds(INSET_VALVE, INSET_VALVE, INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE);
-            renderer.setRenderBoundsFromBlock(block);
+            renderer
+                .setRenderBounds(INSET_VALVE, INSET_VALVE, INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE);
             renderer.renderStandardBlock(block, x, y, z);
         }
 
@@ -137,8 +132,7 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
 
         Tessellator.instance.setColorOpaque_F(1, 1, 1);
         renderer.clearOverrideBlockTexture();
-        block.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
-        renderer.setRenderBoundsFromBlock(block);
+        renderer.setRenderBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
         return true;
     }
 
