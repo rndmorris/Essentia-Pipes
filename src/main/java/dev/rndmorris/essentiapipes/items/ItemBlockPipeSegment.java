@@ -8,7 +8,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import dev.rndmorris.essentiapipes.api.IPipeSegment;
-import dev.rndmorris.essentiapipes.api.WorldCoordinate;
 import dev.rndmorris.essentiapipes.blocks.BlockPipeSegment;
 
 public class ItemBlockPipeSegment extends ItemBlock {
@@ -36,21 +35,24 @@ public class ItemBlockPipeSegment extends ItemBlock {
     public boolean placeBlockAt(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side,
         float hitX, float hitY, float hitZ, int metadata) {
 
-        final var here = new WorldCoordinate(world.provider.dimensionId, x, y, z);
-        final var there = here.shift(
-            ForgeDirection.getOrientation(side)
-                .getOpposite());
+        var useMetadata = metadata;
 
         if (player.isSneaking()) {
-            final var therePipe = there.getBlock(IPipeSegment.class);
-            if (therePipe != null) {
-                final var copyColor = therePipe.getPipeColor(there);
+            final var hitSide = ForgeDirection.getOrientation(side)
+                .getOpposite();
+            final var dX = x + hitSide.offsetX;
+            final var dY = y + hitSide.offsetY;
+            final var dZ = z + hitSide.offsetZ;
+
+            final var thereBlock = world.getBlock(dX, dY, dZ);
+            if (thereBlock instanceof IPipeSegment therePipe) {
+                final var copyColor = therePipe.getPipeColor(world, dX, dY, dZ);
                 if (copyColor != null) {
-                    return super.placeBlockAt(stack, player, world, x, y, z, side, hitX, hitY, hitZ, copyColor.id);
+                    useMetadata = copyColor.id;
                 }
             }
         }
 
-        return super.placeBlockAt(stack, player, world, x, y, z, side, hitX, hitY, hitZ, metadata);
+        return super.placeBlockAt(stack, player, world, x, y, z, side, hitX, hitY, hitZ, useMetadata);
     }
 }

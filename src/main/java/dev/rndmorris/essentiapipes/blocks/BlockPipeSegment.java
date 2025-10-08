@@ -30,7 +30,6 @@ import dev.rndmorris.essentiapipes.api.IIOPipeSegment;
 import dev.rndmorris.essentiapipes.api.IPipeSegment;
 import dev.rndmorris.essentiapipes.api.PipeColor;
 import dev.rndmorris.essentiapipes.api.PipeHelper;
-import dev.rndmorris.essentiapipes.api.WorldCoordinate;
 import dev.rndmorris.essentiapipes.items.ItemBlockPipeSegment;
 import dev.rndmorris.essentiapipes.tile.TileEntityIOPipeSegment;
 import thaumcraft.api.aspects.IEssentiaTransport;
@@ -388,29 +387,12 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     ///
 
     @Override
-    public boolean canConnectTo(WorldCoordinate position, ForgeDirection face) {
-        final var there = position.shift(face);
-        final var neighbor = there.getBlock(IPipeSegment.class);
-
-        return this == neighbor && this.getPipeColor(position)
-            .willConnectTo(neighbor.getPipeColor(there));
-    }
-
-    @Override
     public boolean canConnectTo(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
         final int dX = x + face.offsetX, dY = y + face.offsetY, dZ = z + face.offsetZ;
         final var adjacentBlock = world.getBlock(dX, dY, dZ);
 
         return this == adjacentBlock && this.getPipeColor(world, x, y, z)
             .willConnectTo(this.getPipeColor(world, dX, dY, dZ));
-    }
-
-    public PipeColor getPipeColor(WorldCoordinate position) {
-        final var metadata = position.getBlockMetadata();
-        if (metadata >= 0) {
-            return pipeColorFromMetadata(metadata);
-        }
-        return null;
     }
 
     public PipeColor getPipeColor(IBlockAccess world, int x, int y, int z) {

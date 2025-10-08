@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import javax.annotation.Nonnull;
-
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -21,25 +19,22 @@ import thaumcraft.api.aspects.IEssentiaTransport;
  */
 public class PipeHelper {
 
-    /**
-     * Whether the pipe segment at the given position should connect in the given direction.
-     *
-     * @param here      The position of the pipe segment to check.
-     * @param direction The direction to check.
-     * @return True if there is a pipe segment both here and in the given direction, and they can connect, or false
-     *         otherwise.
-     */
-    public static boolean canConnect(@Nonnull WorldCoordinate here, @Nonnull ForgeDirection direction) {
-        final var herePipe = here.getBlock(IPipeSegment.class);
-        if (herePipe == null) {
+    public static boolean canConnect(IBlockAccess world, int x, int y, int z, ForgeDirection direction) {
+        final var hereBlock = world.getBlock(x, y, z);
+        if (!(hereBlock instanceof IPipeSegment herePipe)) {
             return false;
         }
-        final var there = here.shift(direction);
-        final var therePipe = there.getBlock(IPipeSegment.class);
-        if (therePipe == null) {
+        if (herePipe.canConnectTo(world, x, y, z, direction)) {
+            return true;
+        }
+        final var dX = x + direction.offsetX;
+        final var dY = y + direction.offsetY;
+        final var dZ = z + direction.offsetZ;
+        final var thereBlock = world.getBlock(dX, dY, dZ);
+        if (!(thereBlock instanceof IPipeSegment therePipe)) {
             return false;
         }
-        return herePipe.canConnectTo(here, direction) || therePipe.canConnectTo(there, direction.getOpposite());
+        return therePipe.canConnectTo(world, dX, dY, dZ, direction.getOpposite());
     }
 
     /**
@@ -54,23 +49,26 @@ public class PipeHelper {
      *         IEssentiaTransport tile in the given direction.
      */
     public static boolean canConnectVisually(IBlockAccess world, int x, int y, int z, ForgeDirection direction) {
-        final int dX = x + direction.offsetX, dY = y + direction.offsetY, dZ = z + direction.offsetZ;
-        final var here = world.getBlock(x, y, z);
-        if (!(here instanceof IPipeSegment herePipe)) {
+        final var hereBlock = world.getBlock(x, y, z);
+        if (!(hereBlock instanceof IPipeSegment herePipe)) {
             return false;
         }
-        final var there = world.getBlock(dX, dY, dZ);
-        if (there == null) {
+        if (herePipe.canConnectTo(world, x, y, z, direction)) {
+            return true;
+        }
+        final var dX = x + direction.offsetX;
+        final var dY = y + direction.offsetY;
+        final var dZ = z + direction.offsetZ;
+        final var thereBlock = world.getBlock(dX, dY, dZ);
+        if (!(thereBlock instanceof IPipeSegment therePipe)) {
             return false;
         }
-        final var neighborSide = direction.getOpposite();
-        if (there instanceof IPipeSegment pipe) {
-            return herePipe.canConnectTo(world, x, y, z, direction)
-                || pipe.canConnectTo(world, dX, dY, dZ, neighborSide);
+        if (therePipe.canConnectTo(world, dX, dY, dZ, direction.getOpposite())) {
+            return true;
         }
         final var thereTile = world.getTileEntity(dX, dY, dZ);
         if (thereTile instanceof IEssentiaTransport transport) {
-            return transport.isConnectable(neighborSide);
+            return transport.isConnectable(direction.getOpposite());
         }
         return false;
     }
@@ -143,9 +141,14 @@ public class PipeHelper {
                 };
 
                 final var here = current.coordinate;
+                visited.add(here);
+
                 final var distance = current.distance;
 
-                visited.add(here);
+                final var hereWorld = here.getWorld();
+                if (hereWorld == null) {
+                    continue;
+                }
 
                 final var ioSegment = here.getTileEntity(IIOPipeSegment.class);
                 if (ioSegment != null && (!resultMap.containsKey(here) || resultMap.get(here) > distance)) {
@@ -154,7 +157,8 @@ public class PipeHelper {
 
                 for (var dir : ForgeDirection.VALID_DIRECTIONS) {
                     final var there = here.shift(dir);
-                    if (!visited.contains(here.shift(dir)) && canConnect(here, dir)) {
+                    if (!visited.contains(here.shift(dir))
+                        && canConnect(hereWorld, here.x(), here.y(), here.z(), dir)) {
                         queue.push(new NavigationEntry(there, distance + 1));
                     }
                 }
