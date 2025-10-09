@@ -60,11 +60,8 @@ public class PipeHelper {
         final var dY = y + direction.offsetY;
         final var dZ = z + direction.offsetZ;
         final var thereBlock = world.getBlock(dX, dY, dZ);
-        if (!(thereBlock instanceof IPipeSegment therePipe)) {
-            return false;
-        }
-        if (therePipe.canConnectTo(world, dX, dY, dZ, direction.getOpposite())) {
-            return true;
+        if (thereBlock instanceof IPipeSegment therePipe) {
+            return therePipe.canConnectTo(world, dX, dY, dZ, direction.getOpposite());
         }
         final var thereTile = world.getTileEntity(dX, dY, dZ);
         if (thereTile instanceof IEssentiaTransport transport) {
