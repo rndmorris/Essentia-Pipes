@@ -149,15 +149,15 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
 
 final class Bounds {
 
-    private static final float MIN = BlockPipeSegment.INSET;
-    private static final float MAX = BlockPipeSegment.R_INSET;
+    private static final float MIN = BlockPipeSegment.BOUND_MIN;
+    private static final float MAX = BlockPipeSegment.BOUND_MAX;
     private static final float MIN_FULL = 0;
     private static final float MAX_FULL = 1;
     private static final float MAX_EXTEND = 6F / 16F;
     private static final float MIN_EXTEND = 1 - MAX_EXTEND;
 
-    private static final float MIN_VALVE = BlockPipeSegment.INSET_VALVE;
-    private static final float MAX_VALVE = BlockPipeSegment.R_INSET_VALVE;
+    private static final float MIN_VALVE = BlockPipeSegment.BOUND_MIN_VALVE;
+    private static final float MAX_VALVE = BlockPipeSegment.BOUND_MAX_VALVE;
 
     public static final Bounds DEFAULT = new Bounds(MIN, MIN, MIN, MAX, MAX, MAX);
     public static final Bounds VALVE = new Bounds(MIN_VALVE, MIN_VALVE, MIN_VALVE, MAX_VALVE, MAX_VALVE, MAX_VALVE);

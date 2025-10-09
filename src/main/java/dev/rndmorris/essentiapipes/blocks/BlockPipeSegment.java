@@ -45,18 +45,12 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     public static final String ID = "pipe_segment";
     public static final String ID_THAUMIUM = "pipe_segment_thaumium";
     public static final String ID_VOIDMETAL = "pipe_segment_voidmetal";
-    public static final byte IS_IO_SEGMENT = 0b1000;
+
     public static BlockPipeSegment pipe_segment;
     public static BlockPipeSegment pipe_segment_thaumium;
     public static BlockPipeSegment pipe_segment_voidmetal;
 
     public static int renderId = -1;
-
-    public final static float PIXEL = 1F / 16F;
-    public final static float INSET = 6.5F * PIXEL;
-    public final static float R_INSET = 1F - INSET;
-    public final static float INSET_VALVE = 6 * PIXEL;
-    public final static float R_INSET_VALVE = 1F - INSET_VALVE;
 
     public static void preInit() {
         if (Config.pipeEnabledBasic) {
@@ -79,6 +73,13 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         GameRegistry.registerBlock(instance, ItemBlockPipeSegment.class, id);
         return instance;
     }
+
+    public static final byte IS_IO_SEGMENT = 0b1000;
+    public final static float PIXEL = 1F / 16F;
+    public final static float BOUND_MIN = 6.5F * PIXEL;
+    public final static float BOUND_MAX = 1F - BOUND_MIN;
+    public final static float BOUND_MIN_VALVE = 6 * PIXEL;
+    public final static float BOUND_MAX_VALVE = 1F - BOUND_MIN_VALVE;
 
     public static PipeColor pipeColorFromMetadata(int metadata) {
         return PipeColor.fromId((metadata & ~(IS_IO_SEGMENT)));
@@ -148,12 +149,12 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
     }
 
     private static AxisAlignedBB calcBoundingBox(World world, int x, int y, int z) {
-        final var minX = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.WEST) ? 0 : INSET_VALVE;
-        final var minY = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.DOWN) ? 0 : INSET_VALVE;
-        final var minZ = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.NORTH) ? 0 : INSET_VALVE;
-        final var maxX = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.EAST) ? 1 : R_INSET_VALVE;
-        final var maxY = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.UP) ? 1 : R_INSET_VALVE;
-        final var maxZ = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.SOUTH) ? 1 : R_INSET_VALVE;
+        final var minX = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.WEST) ? 0 : BOUND_MIN_VALVE;
+        final var minY = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.DOWN) ? 0 : BOUND_MIN_VALVE;
+        final var minZ = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.NORTH) ? 0 : BOUND_MIN_VALVE;
+        final var maxX = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.EAST) ? 1 : BOUND_MAX_VALVE;
+        final var maxY = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.UP) ? 1 : BOUND_MAX_VALVE;
+        final var maxZ = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.SOUTH) ? 1 : BOUND_MAX_VALVE;
 
         return AxisAlignedBB.getBoundingBox(x + minX, y + minY, z + minZ, x + maxX, y + maxY, z + maxZ);
     }
@@ -344,10 +345,10 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
             return;
         }
 
-        final var posMin = R_INSET - INSET;
-        final var pX = x + posMin + random.nextFloat() * R_INSET;
-        final var pY = y + posMin + random.nextFloat() * R_INSET;
-        final var pZ = z + posMin + random.nextFloat() * R_INSET;
+        final var posMin = BOUND_MAX - BOUND_MIN;
+        final var pX = x + posMin + random.nextFloat() * BOUND_MAX;
+        final var pY = y + posMin + random.nextFloat() * BOUND_MAX;
+        final var pZ = z + posMin + random.nextFloat() * BOUND_MAX;
 
         final var vX = 1;
         final var vY = .2F;
