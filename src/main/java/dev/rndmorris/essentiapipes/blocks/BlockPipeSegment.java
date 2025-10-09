@@ -147,7 +147,7 @@ public class BlockPipeSegment extends Block implements IPipeSegment, ITileEntity
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    private AxisAlignedBB calcBoundingBox(World world, int x, int y, int z) {
+    private static AxisAlignedBB calcBoundingBox(World world, int x, int y, int z) {
         final var minX = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.WEST) ? 0 : INSET_VALVE;
         final var minY = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.DOWN) ? 0 : INSET_VALVE;
         final var minZ = PipeHelper.canConnectVisually(world, x, y, z, ForgeDirection.NORTH) ? 0 : INSET_VALVE;
