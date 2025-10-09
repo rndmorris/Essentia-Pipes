@@ -1,13 +1,9 @@
 package dev.rndmorris.essentiapipes.client;
 
-import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.INSET;
-import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.INSET_VALVE;
-import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.R_INSET;
-import static dev.rndmorris.essentiapipes.blocks.BlockPipeSegment.R_INSET_VALVE;
+import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -36,13 +32,15 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
 
     @Override
     public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
-        final var icon = block.getIcon(0, metadata);
-        block.setBlockBounds(INSET, INSET, 0, R_INSET, R_INSET, 1);
-        renderer.setRenderBoundsFromBlock(block);
-        BlockRenderer.drawFaces(renderer, block, icon, false);
+        if (!(block instanceof BlockPipeSegment pipeSegment)) {
+            return;
+        }
+        Bounds.Z_FULL.applyTo(renderer);
+        BlockRenderer.drawFaces(renderer, block, pipeSegment.getIcon(0, metadata), false);
+        Bounds.VALVE.applyTo(renderer);
+        BlockRenderer.drawFaces(renderer, block, pipeSegment.valveIcon[0], false);
     }
 
-    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId,
         RenderBlocks renderer) {
@@ -50,96 +48,92 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
             return false;
         }
 
-        renderer.field_152631_f = true;
-        boolean renderX = false, renderY = false, renderZ = false;
-
-        float xAxisMinX = INSET, xAxisMaxX = R_INSET, xAxisMinY = INSET, xAxisMaxY = R_INSET, xAxisMinZ = INSET,
-            xAxisMaxZ = R_INSET;
-
-        float yAxisMinX = INSET, yAxisMaxX = R_INSET, yAxisMinY = INSET, yAxisMaxY = R_INSET, yAxisMinZ = INSET,
-            yAxisMaxZ = R_INSET;
-
-        float zAxisMinX = INSET, zAxisMaxX = R_INSET, zAxisMinY = INSET, zAxisMaxY = R_INSET, zAxisMinZ = INSET,
-            zAxisMaxZ = R_INSET;
+        // directions to render towards
+        final var render = new boolean[ForgeDirection.VALID_DIRECTIONS.length];
+        // directions to extend towards
+        final var extend = new boolean[ForgeDirection.VALID_DIRECTIONS.length];
 
         for (var dir : ForgeDirection.VALID_DIRECTIONS) {
             if (!PipeHelper.canConnectVisually(world, x, y, z, dir)) {
                 continue;
             }
-            final var adjacentTile = world.getTileEntity(x + dir.offsetX, y + dir.offsetY, z + dir.offsetZ);
-            final var needsExtension = (!(adjacentTile instanceof IIOPipeSegment)
-                && adjacentTile instanceof IEssentiaTransport transport
-                && transport.renderExtendedTube());
-            switch (dir) {
-                case DOWN -> {
-                    yAxisMinY = needsExtension ? -BlockRenderer.W6 : 0;
-                    renderY = true;
-                }
-                case UP -> {
-                    yAxisMaxY = needsExtension ? 1 + BlockRenderer.W6 : 1;
-                    renderY = true;
-                }
-                case NORTH -> {
-                    zAxisMinZ = needsExtension ? -BlockRenderer.W6 : 0;
-                    renderZ = true;
-                }
-                case SOUTH -> {
-                    zAxisMaxZ = needsExtension ? 1 + BlockRenderer.W6 : 1;
-                    renderZ = true;
-                }
-                case WEST -> {
-                    xAxisMinX = needsExtension ? -BlockRenderer.W6 : 0;
-                    renderX = true;
-                }
-                case EAST -> {
-                    xAxisMaxX = needsExtension ? 1 + BlockRenderer.W6 : 1;
-                    renderX = true;
-                }
+            render[dir.ordinal()] = true;
+            extend[dir.ordinal()] = extendTowards(world, x, y, z, dir);
+        }
+
+        var renderedAny = false;
+
+        var bounds = Bounds.getXBounds(render);
+        if (bounds != null) {
+            renderedAny = true;
+            bounds.applyTo(renderer)
+                .renderStandardBlock(block, x, y, z);
+
+            if (extend[ForgeDirection.WEST.ordinal()]) {
+                Bounds.EXTEND_X_NEG.applyTo(renderer)
+                    .renderStandardBlock(block, x - 1, y, z);
+            }
+            if (extend[ForgeDirection.EAST.ordinal()]) {
+                Bounds.EXTEND_X_POS.applyTo(renderer)
+                    .renderStandardBlock(block, x + 1, y, z);
             }
         }
 
-        final var metadata = world.getBlockMetadata(x, y, z);
+        bounds = Bounds.getYBounds(render);
+        if (bounds != null) {
+            renderedAny = true;
+            bounds.applyTo(renderer)
+                .renderStandardBlock(block, x, y, z);
 
-        var renderedAny = false;
-        if (renderX) {
-            renderedAny = true;
-            block.setBlockBounds(xAxisMinX, xAxisMinY, xAxisMinZ, xAxisMaxX, xAxisMaxY, xAxisMaxZ);
-            renderer.setRenderBoundsFromBlock(block);
-            renderer.renderStandardBlock(block, x, y, z);
+            if (extend[ForgeDirection.DOWN.ordinal()]) {
+                Bounds.EXTEND_Y_NEG.applyTo(renderer)
+                    .renderStandardBlock(block, x, y - 1, z);
+            }
+            if (extend[ForgeDirection.EAST.ordinal()]) {
+                Bounds.EXTEND_Y_POS.applyTo(renderer)
+                    .renderStandardBlock(block, x, y + 1, z);
+            }
         }
-        if (renderY) {
+
+        bounds = Bounds.getZBounds(render);
+        if (bounds != null) {
             renderedAny = true;
-            block.setBlockBounds(yAxisMinX, yAxisMinY, yAxisMinZ, yAxisMaxX, yAxisMaxY, yAxisMaxZ);
-            renderer.setRenderBoundsFromBlock(block);
-            renderer.renderStandardBlock(block, x, y, z);
-        }
-        if (renderZ) {
-            renderedAny = true;
-            block.setBlockBounds(zAxisMinX, zAxisMinY, zAxisMinZ, zAxisMaxX, zAxisMaxY, zAxisMaxZ);
-            renderer.setRenderBoundsFromBlock(block);
-            renderer.renderStandardBlock(block, x, y, z);
+            bounds.applyTo(renderer)
+                .renderStandardBlock(block, x, y, z);
+
+            if (extend[ForgeDirection.NORTH.ordinal()]) {
+                Bounds.EXTEND_Z_NEG.applyTo(renderer)
+                    .renderStandardBlock(block, x, y - 1, z);
+            }
+            if (extend[ForgeDirection.SOUTH.ordinal()]) {
+                Bounds.EXTEND_Z_POS.applyTo(renderer)
+                    .renderStandardBlock(block, x, y + 1, z);
+            }
         }
 
         if (!renderedAny) {
-            block.setBlockBounds(INSET, INSET, INSET, R_INSET, R_INSET, R_INSET);
-            renderer.setRenderBoundsFromBlock(block);
-            renderer.renderStandardBlock(block, x, y, z);
+            Bounds.DEFAULT.applyTo(renderer)
+                .renderStandardBlock(block, x, y, z);
         }
 
+        final var metadata = world.getBlockMetadata(x, y, z);
         if (BlockPipeSegment.isIOSegment(metadata)) {
             renderer.overrideBlockTexture = pipeSegment.valveIcon[0];
-            block.setBlockBounds(INSET_VALVE, INSET_VALVE, INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE, R_INSET_VALVE);
-            renderer.setRenderBoundsFromBlock(block);
-            renderer.renderStandardBlock(block, x, y, z);
+            Bounds.VALVE.applyTo(renderer)
+                .renderStandardBlock(block, x, y, z);
+            renderer.clearOverrideBlockTexture();
         }
 
-        renderer.field_152631_f = false;
-
-        Tessellator.instance.setColorOpaque_F(1, 1, 1);
-        renderer.clearOverrideBlockTexture();
-        block.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
-        renderer.setRenderBoundsFromBlock(block);
         return true;
+    }
+
+    private static boolean extendTowards(IBlockAccess world, int x, int y, int z, ForgeDirection direction) {
+        final var adjacentTile = world
+            .getTileEntity(x + direction.offsetX, y + direction.offsetY, z + direction.offsetZ);
+        if (adjacentTile instanceof IIOPipeSegment) {
+            return false;
+        }
+        return adjacentTile instanceof IEssentiaTransport transport && transport.renderExtendedTube();
     }
 
     @Override
@@ -150,5 +144,110 @@ public class BlockPipeSegmentRenderer extends RenderBlocks implements ISimpleBlo
     @Override
     public int getRenderId() {
         return renderId;
+    }
+}
+
+final class Bounds {
+
+    private static final float MIN = BlockPipeSegment.BOUND_MIN;
+    private static final float MAX = BlockPipeSegment.BOUND_MAX;
+    private static final float MIN_FULL = 0;
+    private static final float MAX_FULL = 1;
+    private static final float MAX_EXTEND = 6F / 16F;
+    private static final float MIN_EXTEND = 1 - MAX_EXTEND;
+
+    private static final float MIN_VALVE = BlockPipeSegment.BOUND_MIN_VALVE;
+    private static final float MAX_VALVE = BlockPipeSegment.BOUND_MAX_VALVE;
+
+    public static final Bounds DEFAULT = new Bounds(MIN, MIN, MIN, MAX, MAX, MAX);
+    public static final Bounds VALVE = new Bounds(MIN_VALVE, MIN_VALVE, MIN_VALVE, MAX_VALVE, MAX_VALVE, MAX_VALVE);
+
+    public static final Bounds X_FULL = new Bounds(MIN_FULL, MIN, MIN, MAX_FULL, MAX, MAX);
+    public static final Bounds X_NEG = new Bounds(MIN_FULL, MIN, MIN, MAX, MAX, MAX);
+    public static final Bounds X_POS = new Bounds(MIN, MIN, MIN, MAX_FULL, MAX, MAX);
+
+    public static final Bounds Y_FULL = new Bounds(MIN, MIN_FULL, MIN, MAX, MAX_FULL, MAX);
+    public static final Bounds Y_NEG = new Bounds(MIN, MIN_FULL, MIN, MAX, MAX, MAX);
+    public static final Bounds Y_POS = new Bounds(MIN, MIN, MIN, MAX, MAX_FULL, MAX);
+
+    public static final Bounds Z_FULL = new Bounds(MIN, MIN, MIN_FULL, MAX, MAX, MAX_FULL);
+    public static final Bounds Z_NEG = new Bounds(MIN, MIN, MIN_FULL, MAX, MAX, MAX);
+    public static final Bounds Z_POS = new Bounds(MIN, MIN, MIN, MAX, MAX, MAX_FULL);
+
+    public static final Bounds EXTEND_X_NEG = new Bounds(MIN_EXTEND, MIN, MIN, MAX_FULL, MAX, MAX);
+    public static final Bounds EXTEND_X_POS = new Bounds(MIN_FULL, MIN, MIN, MAX_EXTEND, MAX, MAX);
+    public static final Bounds EXTEND_Y_NEG = new Bounds(MIN, MIN_EXTEND, MIN, MAX, MAX_FULL, MAX);
+    public static final Bounds EXTEND_Y_POS = new Bounds(MIN, MIN_FULL, MIN, MAX, MAX_EXTEND, MAX);
+    public static final Bounds EXTEND_Z_NEG = new Bounds(MIN, MIN, MIN_EXTEND, MAX, MAX, MAX_FULL);
+    public static final Bounds EXTEND_Z_POS = new Bounds(MIN, MIN, MIN_FULL, MAX, MAX, MAX_EXTEND);
+
+    @Nullable
+    public static Bounds getXBounds(boolean[] render) {
+        final var renderNeg = render[ForgeDirection.WEST.ordinal()];
+        final var renderPos = render[ForgeDirection.EAST.ordinal()];
+        if (renderNeg && renderPos) {
+            return X_FULL;
+        }
+        if (renderNeg) {
+            return X_NEG;
+        }
+        if (renderPos) {
+            return X_POS;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static Bounds getYBounds(boolean[] render) {
+        final var renderNeg = render[ForgeDirection.DOWN.ordinal()];
+        final var renderPos = render[ForgeDirection.UP.ordinal()];
+
+        if (renderNeg && renderPos) {
+            return Y_FULL;
+        }
+        if (renderNeg) {
+            return Y_NEG;
+        }
+        if (renderPos) {
+            return Y_POS;
+        }
+        return null;
+    }
+
+    @Nullable
+    public static Bounds getZBounds(boolean[] render) {
+        final var renderNeg = render[ForgeDirection.NORTH.ordinal()];
+        final var renderPos = render[ForgeDirection.SOUTH.ordinal()];
+        if (renderNeg && renderPos) {
+            return Z_FULL;
+        }
+        if (renderNeg) {
+            return Z_NEG;
+        }
+        if (renderPos) {
+            return Z_POS;
+        }
+        return null;
+    }
+
+    public final float minX;
+    public final float minY;
+    public final float minZ;
+    public final float maxX;
+    public final float maxY;
+    public final float maxZ;
+
+    private Bounds(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+        this.minX = minX;
+        this.minY = minY;
+        this.minZ = minZ;
+        this.maxX = maxX;
+        this.maxY = maxY;
+        this.maxZ = maxZ;
+    }
+
+    public RenderBlocks applyTo(RenderBlocks renderer) {
+        renderer.setRenderBounds(minX, minY, minZ, maxX, maxY, maxZ);
+        return renderer;
     }
 }
